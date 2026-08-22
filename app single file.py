@@ -383,6 +383,12 @@ STRINGS: dict[str, dict[str, str]] = {
     "cause_price":     {"es": "precio", "en": "price"},
     "cause_cost":      {"es": "costo unitario", "en": "unit cost"},
     "ov_budget_gap":   {"es": "Brecha vs budget por {level}", "en": "Budget gap by {level}"},
+    "ov_stack":        {"es": "Facturado + cartera vs budget por {level}",
+                        "en": "Invoiced + backlog vs budget by {level}"},
+    "ov_stack_note":   {"es": "La barra sólida es lo facturado; la rayada, los {open} ya vendidos y pendientes de embarque. Sumados dan {so}. {n} {level} alcanzan o superan su budget contando la cartera.",
+                        "en": "The solid bar is what is invoiced; the hatched one is the {open} already sold and awaiting shipment. Together they reach {so}. {n} {level} meet or beat their budget once backlog is counted."},
+    "cl_stack":        {"es": "Facturado + cartera vs budget por familia",
+                        "en": "Invoiced + backlog vs budget by family"},
     "ov_backlog_card": {"es": "Cartera abierta vs brecha de budget",
                         "en": "Open orders vs budget gap"},
     "ov_backlog_delta": {"es": "cubre {pct} de la brecha de {gap}",
@@ -1929,40 +1935,122 @@ def progress_bar(
     title: str = "",
     subtitle: str = "",
     formatter=None,
+    backlog: float = 0.0,
 ) -> go.Figure:
-    """Horizontal attainment bar with an expected-pace marker."""
+    """Attainment bar against budget, with an expected-pace marker.
+
+    `backlog` stacks a second segment on top of what is already invoiced —
+    orders booked but not yet billed. It is drawn in its own colour and hatched,
+    so the eye never confuses money in the bank with money still to ship.
+    """
     if not target or target <= 0 or value is None:
         return _empty(t("budget"))
     share = value / target
+    backlog = float(backlog or 0.0)
+    extra = max(backlog, 0.0) / target
     colour = T.POSITIVE if (pace is None or share >= pace) else (
         T.WARNING if share >= (pace or 0) * 0.9 else T.NEGATIVE
     )
+    fmt = formatter or T.money_compact
 
     fig = go.Figure()
-    # Track first, fill on top — overlay, not stack, or the fill would start
-    # where the track ends.
+    # Track first, then the widest segment, then narrower ones on top: with
+    # barmode="overlay" a stacked look comes from drawing back to front.
     fig.add_trace(go.Bar(x=[1.0], y=[""], orientation="h", marker=dict(color="#EDF1F5"),
-                         hoverinfo="skip", showlegend=False, width=0.5))
-    fig.add_trace(go.Bar(x=[share], y=[""], orientation="h",
-                         marker=dict(color=colour), showlegend=False, width=0.5,
-                         hovertemplate=f"{share:.1%}<extra></extra>"))
+                         hoverinfo="skip", showlegend=False, width=0.52))
+    if extra > 0:
+        fig.add_trace(go.Bar(
+            x=[share + extra], y=[""], orientation="h", width=0.52,
+            name=t("open_orders"), showlegend=True,
+            marker=dict(color=T.AZURE, line=dict(color=T.NAVY, width=1),
+                        pattern=dict(shape="/", size=8, solidity=0.30,
+                                     fgcolor="#FFFFFF", bgcolor=T.AZURE)),
+            hovertemplate=f"{t('sold_open')}: {fmt(value + backlog)}"
+                          f" · {share + extra:.1%}<extra></extra>",
+        ))
+    fig.add_trace(go.Bar(
+        x=[share], y=[""], orientation="h", width=0.52,
+        name=t("invoiced"), showlegend=extra > 0,
+        marker=dict(color=colour),
+        hovertemplate=f"{t('invoiced')}: {fmt(value)} · {share:.1%}<extra></extra>",
+    ))
+
     if pace is not None and not np.isnan(pace):
-        fig.add_shape(type="line", x0=pace, x1=pace, y0=-0.4, y1=0.4,
+        fig.add_shape(type="line", x0=pace, x1=pace, y0=-0.42, y1=0.42, layer="above",
                       line=dict(color=T.NAVY, width=2, dash="dot"))
-        fig.add_annotation(x=pace, y=0.45, text=f"{pace:.0%}", showarrow=False,
+        fig.add_annotation(x=pace, y=0.46, text=f"{pace:.0%}", showarrow=False,
                            font=dict(size=11, color=T.NAVY), yanchor="bottom")
 
-    fmt = formatter or T.money_compact
     label = f"{share:.0%} · {fmt(value)} / {fmt(target)}"
+    if extra > 0:
+        label += f"   +{fmt(backlog)} → {share + extra:.0%}"
     fig.update_layout(
-        barmode="overlay", height=132, title=dict(text=title, font=dict(size=14)),
-        xaxis=dict(range=[0, max(1.15, share * 1.1)], tickformat=".0%",
+        barmode="overlay", height=150 if extra > 0 else 132,
+        title=dict(text=title, font=dict(size=14)),
+        xaxis=dict(range=[0, max(1.15, (share + extra) * 1.1)], tickformat=".0%",
                    showgrid=False, zeroline=False),
         yaxis=dict(showticklabels=False, showgrid=False),
-        margin=dict(l=4, r=4, t=44, b=28), showlegend=False,
+        margin=dict(l=4, r=4, t=58 if extra > 0 else 44, b=28),
+        showlegend=extra > 0,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0,
+                    font=dict(size=11), traceorder="reversed"),
     )
     fig.add_annotation(x=0, y=-0.62, text=f"{label}   {subtitle}", showarrow=False,
                        xanchor="left", font=dict(size=11, color=T.MUTED))
+    return fig
+
+
+def budget_stack(
+    df: pd.DataFrame, label_col: str, invoiced_col: str, backlog_col: str,
+    budget_col: str, title: str, top_n: int = 15,
+) -> go.Figure:
+    """Invoiced + backlog stacked per group, with the budget as a marker.
+
+    Answers "where does what we already have, plus what we have already sold,
+    land against the target" for every group on one axis.
+    """
+    needed = [c for c in (invoiced_col, backlog_col, budget_col) if c in df.columns]
+    if df.empty or invoiced_col not in df.columns:
+        return _empty()
+    d = df.copy()
+    for c in needed:
+        d[c] = pd.to_numeric(d[c], errors="coerce").fillna(0.0)
+    d["_rank"] = d[[c for c in needed]].max(axis=1)
+    d = d.sort_values("_rank", ascending=False).head(top_n).sort_values("_rank")
+    if d.empty:
+        return _empty()
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        y=_trunc(d[label_col], 30), x=d[invoiced_col], orientation="h",
+        name=t("invoiced"), marker=dict(color=T.NAVY),
+        hovertemplate="%{y}<br>%{x:$,.0f}<extra></extra>",
+    ))
+    if backlog_col in d.columns and d[backlog_col].abs().sum() > 0:
+        fig.add_trace(go.Bar(
+            y=_trunc(d[label_col], 30), x=d[backlog_col], orientation="h",
+            name=t("open_orders"),
+            marker=dict(color=T.AZURE, line=dict(color=T.NAVY, width=1),
+                        pattern=dict(shape="/", size=8, solidity=0.30,
+                                     fgcolor="#FFFFFF", bgcolor=T.AZURE)),
+            hovertemplate="%{y}<br>%{x:$,.0f}<extra></extra>",
+        ))
+    if budget_col in d.columns and d[budget_col].abs().sum() > 0:
+        fig.add_trace(go.Scatter(
+            y=_trunc(d[label_col], 30), x=d[budget_col], mode="markers",
+            name=t("budget"),
+            marker=dict(symbol="diamond-tall", size=13, color="white",
+                        line=dict(color=T.NEGATIVE, width=2)),
+            hovertemplate="%{y}<br>" + t("budget") + " %{x:$,.0f}<extra></extra>",
+        ))
+
+    span = float(d[needed].to_numpy().max()) or 1.0
+    fig.update_layout(
+        title=title, barmode="stack", height=max(320, 28 * len(d) + 140),
+        xaxis=dict(tickprefix="$", tickformat=",.2s", range=[0, span * 1.12]),
+        yaxis=dict(automargin=True),
+        legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0),
+    )
     return fig
 
 
@@ -2939,7 +3027,14 @@ def render(ctx) -> None:
 
     cur = MX.totals(cur_slice)
     base = MX.totals(base_slice)
+    # Keep the invoiced-only figures: the budget bars always split invoiced from
+    # backlog, whatever the sidebar toggle does to the KPI cards.
     invoiced = float(cur.get("sales") or 0)
+    invoiced_profit = float(cur.get("profit") or 0)
+    invoiced_qty = float(cur.get("quantity") or 0)
+    open_sales = float(cur.get("sales_open") or 0)
+    open_profit = float(cur.get("profit_open") or 0)
+    open_qty = float(cur.get("qty_open") or 0)
     if ctx.include_open:
         cur["sales"] = invoiced + (cur.get("sales_open") or 0)
         cur["profit"] = (cur.get("profit") or 0) + (cur.get("profit_open") or 0)
@@ -2978,24 +3073,24 @@ def render(ctx) -> None:
     with left:
         st.plotly_chart(
             charts.progress_bar(
-                float(cur.get("sales") or 0), budget, pace=pace_share,
+                invoiced, budget, pace=pace_share, backlog=open_sales,
                 title=t("ov_sales_bar"),
                 subtitle=t("ov_pace_sub") if pace else "",
             ),
             width="stretch", key="overview_1")
         st.plotly_chart(
-            charts.progress_bar(float(cur.get("profit") or 0),
-                                float(cur.get("profit_bdg") or 0),
-                                pace=pace_share, title=t("ov_profit_bar")),
+            charts.progress_bar(invoiced_profit, float(cur.get("profit_bdg") or 0),
+                                pace=pace_share, backlog=open_profit,
+                                title=t("ov_profit_bar")),
             width="stretch", key="overview_2")
     with right:
         st.plotly_chart(
-            charts.progress_bar(float(cur.get("quantity") or 0),
-                                float(cur.get("qty_bdg") or 0),
-                                pace=pace_share, title=t("ov_qty_bar"),
+            charts.progress_bar(invoiced_qty, float(cur.get("qty_bdg") or 0),
+                                pace=pace_share, backlog=open_qty,
+                                title=t("ov_qty_bar"),
                                 formatter=lambda v: T.qty(v, ctx.unit)),
             width="stretch", key="overview_3")
-        open_orders = float(cur.get("sales_open") or 0)
+        open_orders = open_sales
         gap = budget - invoiced
         cover = open_orders / gap if gap > 0 else np.nan
         st.markdown(
@@ -3043,8 +3138,24 @@ def render(ctx) -> None:
         cause=t("cause_price") if abs(price_e) >= abs(cost_e) else t("cause_cost"),
     ))
 
-    # --- budget gap by group ------------------------------------------------
+    # --- invoiced + backlog vs budget, group by group -----------------------
     cmp_df = ctx.compare()
+    if "sales_open_cur" in cmp_df.columns and cmp_df["sales_open_cur"].abs().sum() > 0:
+        st.plotly_chart(
+            charts.budget_stack(
+                cmp_df, ctx.group_level, "sales_cur", "sales_open_cur", "sales_bdg_cur",
+                t("ov_stack", level=ctx.label_for(ctx.group_level).lower()),
+                top_n=ctx.top_n,
+            ),
+            width="stretch", key="overview_8")
+        covered = int(((cmp_df["sales_cur"].fillna(0) + cmp_df["sales_open_cur"].fillna(0))
+                       >= cmp_df.get("sales_bdg_cur", 0).fillna(0)).sum()) \
+            if "sales_bdg_cur" in cmp_df.columns else 0
+        ui.note(t("ov_stack_note", open=T.money_compact(open_orders),
+                  so=T.money_compact(invoiced + open_orders),
+                  n=covered, level=ctx.label_for(ctx.group_level).lower()))
+
+    # --- budget gap by group ------------------------------------------------
     if "sales_vs_bdg" in cmp_df.columns and cmp_df["sales_bdg_cur"].abs().sum() > 0:
         st.plotly_chart(
             charts.diverging_bars(
@@ -3163,7 +3274,8 @@ def render(ctx) -> None:
     with left:
         if budget > 0:
             st.plotly_chart(
-                charts.progress_bar(invoiced, budget, title=t("ov_sales_bar")),
+                charts.progress_bar(invoiced, budget, backlog=open_sales,
+                                    title=t("ov_sales_bar")),
                 width="stretch", key="cl_budget_bar",
             )
             gap = budget - invoiced
@@ -3261,6 +3373,12 @@ def render(ctx) -> None:
                            t("dim_treemap")),
             width="stretch", key="cl_treemap",
         )
+
+    if "sales_open_cur" in prod.columns and prod["sales_open_cur"].abs().sum() > 0:
+        st.plotly_chart(
+            charts.budget_stack(prod, "product_family", "sales_cur", "sales_open_cur",
+                                "sales_bdg_cur", t("cl_stack"), top_n=ctx.top_n),
+            width="stretch", key="cl_stack")
 
     item = MX.compare(data, "item_code", ctx.current_year, ctx.base_year,
                       include_open=ctx.include_open)
