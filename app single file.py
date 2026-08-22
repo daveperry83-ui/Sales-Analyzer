@@ -1,5 +1,9 @@
 """Robertet LATAM — Sales Analytics · build de un solo archivo.
 
+© 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+Software propietario — ver LICENSE. Uso licenciado; prohibida su reproducción o
+distribución sin autorización escrita. Contacto: katyasam13@gmail.com
+
 Generado por build_single_file.py — no editar a mano; edita el paquete y
 vuelve a generar.
 
@@ -51,6 +55,12 @@ if _missing:
 _MODULES: dict[str, str] = {}
 
 _MODULES["core.theme"] = r'''"""Robertet visual identity: navy #002856, plus a data palette built around it."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -228,6 +238,12 @@ _MODULES["core.i18n"] = r'''"""Bilingual strings for the whole app — labels, c
 numbers stay translatable instead of being concatenated in code.
 """
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import streamlit as st
@@ -243,6 +259,10 @@ STRINGS: dict[str, dict[str, str]] = {
     "cancel":          {"es": "Cancelar", "en": "Cancel"},
     "none":            {"es": "(ninguna)", "en": "(none)"},
     "empty_all":       {"es": "Vacío = todos", "en": "Empty = all"},
+    "footer_copyright": {"es": "© 2026 · Software propietario · uso licenciado. Datos procesados en memoria; no se almacena copia.",
+                         "en": "© 2026 · Proprietary software · licensed use. Data processed in memory; no copy is stored.",
+                         "pt": "© 2026 · Software proprietário · uso licenciado. Dados processados em memória; nenhuma cópia é armazenada.",
+                         "fr": "© 2026 · Logiciel propriétaire · usage sous licence. Données traitées en mémoire ; aucune copie n'est stockée."},
 
     # ----------------------------------------------------------- evolution --
     "tab_evolution":   {"es": "Evolución mensual", "en": "Monthly evolution"},
@@ -811,11 +831,27 @@ def language() -> str:
     return st.session_state.get("lang", "es")
 
 
+# Fallback chains: a missing pt reads es first (closest), fr reads en first.
+_FALLBACK = {
+    "es": ["es", "en"],
+    "en": ["en", "es"],
+    "pt": ["pt", "es", "en"],
+    "fr": ["fr", "en", "es"],
+}
+
+
+def _resolve(entry: dict, lang: str, key: str) -> str:
+    for l in _FALLBACK.get(lang, ["es", "en"]):
+        if l in entry and entry[l]:
+            return entry[l]
+    return entry.get("es", key)
+
+
 def t(key: str, **kwargs) -> str:
     entry = STRINGS.get(key)
     if entry is None:
         return key
-    text = entry.get(language(), entry.get("es", key))
+    text = _resolve(entry, language(), key)
     if kwargs:
         try:
             return text.format(**kwargs)
@@ -831,11 +867,140 @@ def level_label(level: str) -> str:
 def metric_label(key: str) -> str:
     from core.schema import TOGGLEABLE_METRICS
     meta = TOGGLEABLE_METRICS.get(key)
-    return meta[language()] if meta else key
+    if not meta:
+        return key
+    return _resolve(meta, language(), key)
 
 
 def set_language(lang: str) -> None:
     st.session_state["lang"] = lang
+
+
+# --------------------------------------------------------------------------- #
+# Portuguese and French for the strings a user sees at a glance. Deep analytical
+# prose (bridge notes, insight bullets) falls back per _FALLBACK above.
+# --------------------------------------------------------------------------- #
+_PT_FR = {
+    "app_title": {"pt": "Análise de Vendas LATAM", "fr": "Analyse des Ventes LATAM"},
+    "app_sub": {"pt": "Vendas · Margem · Budget — sessão efêmera",
+                "fr": "Ventes · Marge · Budget — session éphémère"},
+    "privacy_banner": {"pt": "🔒 Dados em memória. Nada é salvo em disco e tudo é apagado ao fechar a sessão.",
+                       "fr": "🔒 Données en mémoire. Rien n'est enregistré sur disque ; tout est effacé à la fermeture."},
+    "language": {"pt": "Idioma", "fr": "Langue"},
+    "cancel": {"pt": "Cancelar", "fr": "Annuler"},
+    "none": {"pt": "(nenhuma)", "fr": "(aucune)"},
+    "empty_all": {"pt": "Vazio = todos", "fr": "Vide = tous"},
+    "upload_title": {"pt": "Carregar arquivos", "fr": "Charger les fichiers"},
+    "upload_ytd": {"pt": "Arquivo YTD (ano atual vs ano anterior)",
+                   "fr": "Fichier YTD (année en cours vs précédente)"},
+    "upload_fy": {"pt": "Arquivo histórico / Full Year (multi-ano)",
+                  "fr": "Fichier historique / Full Year (multi-années)"},
+    "upload_prev": {"pt": "Mês anterior (YTD do fechamento passado)",
+                    "fr": "Mois précédent (YTD de la clôture passée)"},
+    "upload_help": {"pt": "Export do BI em Excel. O app reconhece o formato mesmo que mudem nomes de coluna, idioma ou ordem.",
+                    "fr": "Export du BI en Excel. L'app reconnaît le format même si les noms de colonnes, la langue ou l'ordre changent."},
+    "upload_prev_help": {"pt": "Opcional. O mesmo export YTD baixado no mês passado. Habilita a aba de evolução mensal.",
+                         "fr": "Optionnel. Le même export YTD téléchargé le mois dernier. Active l'onglet d'évolution mensuelle."},
+    "no_files": {"pt": "Carregue ao menos um arquivo para começar.",
+                 "fr": "Chargez au moins un fichier pour commencer."},
+    "file_ytd": {"pt": "Arquivo YTD", "fr": "Fichier YTD"},
+    "file_fy": {"pt": "Arquivo histórico / Full Year", "fr": "Fichier historique / Full Year"},
+    "prev_short": {"pt": "Mês anterior", "fr": "Mois précédent"},
+    "session": {"pt": "Sessão", "fr": "Session"},
+    "clear_all": {"pt": "🗑️ Apagar tudo", "fr": "🗑️ Tout effacer"},
+    "clear_confirm": {"pt": "Confirmar exclusão", "fr": "Confirmer la suppression"},
+    "clear_warning": {"pt": "Serão removidos os arquivos e toda a análise desta sessão.",
+                      "fr": "Les fichiers et toute l'analyse de cette session seront supprimés."},
+    "cleared": {"pt": "Sessão apagada. Nenhum dado permanece em memória.",
+                "fr": "Session effacée. Aucune donnée ne subsiste en mémoire."},
+    "idle_left": {"pt": "Auto-exclusão em", "fr": "Effacement auto dans"},
+    "idle_timeout": {"pt": "Minutos de inatividade antes de apagar",
+                     "fr": "Minutes d'inactivité avant effacement"},
+    "how_title": {"pt": "Como funciona", "fr": "Comment ça marche"},
+    "comparison": {"pt": "Base de comparação", "fr": "Base de comparaison"},
+    "data_source": {"pt": "Fonte de dados", "fr": "Source de données"},
+    "current_year": {"pt": "Ano atual", "fr": "Année en cours"},
+    "base_year": {"pt": "Ano base", "fr": "Année de base"},
+    "dimensions": {"pt": "Dimensões", "fr": "Dimensions"},
+    "group_by": {"pt": "Agrupar por", "fr": "Grouper par"},
+    "second_dim": {"pt": "Dimensão secundária", "fr": "Dimension secondaire"},
+    "filter_customer": {"pt": "Filtrar cliente (grupo)", "fr": "Filtrer client (groupe)"},
+    "filter_account": {"pt": "…ou contas dentro do grupo", "fr": "…ou comptes dans le groupe"},
+    "filter_family": {"pt": "Filtrar famílias", "fr": "Filtrer familles"},
+    "top_n": {"pt": "Top N nos gráficos", "fr": "Top N dans les graphiques"},
+    "metrics": {"pt": "Métricas (ligar / desligar)", "fr": "Mesures (activer / désactiver)"},
+    "metrics_help": {"pt": "Desligue o que não quiser ver; some de KPIs, gráficos e tabelas.",
+                     "fr": "Désactivez ce que vous ne voulez pas voir ; disparaît des KPI, graphiques et tableaux."},
+    "basis": {"pt": "Base de cálculo", "fr": "Base de calcul"},
+    "include_open": {"pt": "Incluir carteira aberta (Sold & Open)",
+                     "fr": "Inclure le carnet de commandes (Sold & Open)"},
+    "materiality": {"pt": "Limite de materialidade (USD)", "fr": "Seuil de matérialité (USD)"},
+    "unit": {"pt": "Unidade de volume", "fr": "Unité de volume"},
+    # tabs
+    "tab_overview": {"pt": "Resumo", "fr": "Résumé"},
+    "tab_client": {"pt": "Ficha do cliente", "fr": "Fiche client"},
+    "tab_backlog": {"pt": "Carteira", "fr": "Carnet"},
+    "tab_evolution": {"pt": "Evolução mensal", "fr": "Évolution mensuelle"},
+    "tab_fy": {"pt": "YTD vs Full Year", "fr": "YTD vs Full Year"},
+    "tab_customers": {"pt": "Clientes", "fr": "Clients"},
+    "tab_products": {"pt": "Produtos", "fr": "Produits"},
+    "tab_deviations": {"pt": "Desvios", "fr": "Écarts"},
+    "tab_strategy": {"pt": "Estratégia", "fr": "Stratégie"},
+    "tab_onepager": {"pt": "Pontuação e one-pager", "fr": "Score et one-pager"},
+    "tab_data": {"pt": "Dados e qualidade", "fr": "Données et qualité"},
+    # levels
+    "level_enterprise": {"pt": "Cliente (grupo)", "fr": "Client (groupe)"},
+    "level_customer": {"pt": "Cliente (conta)", "fr": "Client (compte)"},
+    "level_product_family": {"pt": "Família de produto", "fr": "Famille de produit"},
+    "level_product": {"pt": "Produto", "fr": "Produit"},
+    "level_item_code": {"pt": "Código de item", "fr": "Code d'article"},
+    # measures
+    "sales": {"pt": "Vendas", "fr": "Ventes"},
+    "profit": {"pt": "Lucro", "fr": "Profit"},
+    "margin": {"pt": "Margem", "fr": "Marge"},
+    "volume": {"pt": "Volume", "fr": "Volume"},
+    "price": {"pt": "Preço", "fr": "Prix"},
+    "budget": {"pt": "Budget", "fr": "Budget"},
+    "invoiced": {"pt": "Faturado", "fr": "Facturé"},
+    "open_orders": {"pt": "Carteira aberta", "fr": "Carnet de commandes"},
+    "sold_open": {"pt": "Faturado + carteira", "fr": "Facturé + carnet"},
+    "landing": {"pt": "Aterrissagem projetada", "fr": "Atterrissage projeté"},
+    "achieved": {"pt": "Alcançado", "fr": "Atteint"},
+    "missing": {"pt": "Falta", "fr": "Restant"},
+    "rest": {"pt": "Resto", "fr": "Reste"},
+    "start": {"pt": "Início", "fr": "Début"},
+    "end": {"pt": "Final", "fr": "Fin"},
+    "real": {"pt": "Real", "fr": "Réel"},
+    # common
+    "download_table": {"pt": "Baixar tabela (Excel)", "fr": "Télécharger le tableau (Excel)"},
+    "download_excel": {"pt": "Baixar Excel", "fr": "Télécharger Excel"},
+    "no_data": {"pt": "Sem dados para os filtros atuais.", "fr": "Aucune donnée pour les filtres actuels."},
+    "no_metrics": {"pt": "Ative ao menos uma métrica no painel lateral.",
+                   "fr": "Activez au moins une mesure dans le panneau latéral."},
+    "needs_fy": {"pt": "Esta vista precisa do arquivo histórico / Full Year.",
+                 "fr": "Cette vue nécessite le fichier historique / Full Year."},
+    "needs_ytd": {"pt": "Esta vista precisa do arquivo YTD.", "fr": "Cette vue nécessite le fichier YTD."},
+    "status": {"pt": "Estado", "fr": "Statut"},
+    "no_threshold": {"pt": "sem limite", "fr": "aucun seuil"},
+    # score / evolution headline labels
+    "sc_title": {"pt": "Pontuação", "fr": "Score"},
+    "sc_sales_score": {"pt": "Pontuação vendas", "fr": "Score ventes"},
+    "sc_margin_score": {"pt": "Pontuação margem", "fr": "Score marge"},
+    "sc_band_on": {"pt": "No budget", "fr": "Sur budget"},
+    "sc_band_close": {"pt": "Perto", "fr": "Proche"},
+    "sc_band_risk": {"pt": "Em risco", "fr": "À risque"},
+    "sc_band_critical": {"pt": "Crítico", "fr": "Critique"},
+    "ev_title": {"pt": "Evolução mês a mês", "fr": "Évolution mois par mois"},
+    "ev_verdict": {"pt": "Veredicto do mês", "fr": "Verdict du mois"},
+    "ev_improving": {"pt": "melhorando", "fr": "en amélioration"},
+    "ev_declining": {"pt": "recuando", "fr": "en recul"},
+    "ev_stable": {"pt": "estável", "fr": "stable"},
+    "ev_month_sales": {"pt": "Vendas do mês", "fr": "Ventes du mois"},
+    "ev_month_margin": {"pt": "Margem do mês", "fr": "Marge du mois"},
+}
+
+for _k, _tr in _PT_FR.items():
+    STRINGS.setdefault(_k, {}).update(_tr)
 '''
 
 _MODULES["core.schema"] = r'''"""Canonical mapping of the BI export into the app's internal vocabulary.
@@ -849,6 +1014,12 @@ Only *base* metrics are kept. Every delta, percentage, ratio and variance the
 BI file ships is deliberately discarded and recomputed downstream, because the
 exported ratios (Margin, Price) cannot be aggregated safely.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -969,14 +1140,14 @@ SUM_COLUMNS = [
 
 # Metrics the user can switch on/off, pivot-table style.
 TOGGLEABLE_METRICS = {
-    "sales":      {"es": "Ventas",          "en": "Sales",       "fmt": "money", "default": True},
-    "profit":     {"es": "Profit",          "en": "Profit",      "fmt": "money", "default": True},
-    "margin_pct": {"es": "Margen %",        "en": "Margin %",    "fmt": "pct",   "default": True},
-    "quantity":   {"es": "Volumen",         "en": "Volume",      "fmt": "qty",   "default": True},
-    "price":      {"es": "Precio unitario", "en": "Unit price",  "fmt": "unit",  "default": True},
-    "unit_cost":  {"es": "Costo unitario",  "en": "Unit cost",   "fmt": "unit",  "default": False},
-    "lines":      {"es": "Líneas",          "en": "Order lines", "fmt": "int",   "default": False},
-    "sales_open": {"es": "Cartera abierta", "en": "Open orders", "fmt": "money", "default": False},
+    "sales":      {"es": "Ventas", "en": "Sales", "pt": "Vendas", "fr": "Ventes", "fmt": "money", "default": True},
+    "profit":     {"es": "Profit", "en": "Profit", "pt": "Lucro", "fr": "Profit", "fmt": "money", "default": True},
+    "margin_pct": {"es": "Margen %", "en": "Margin %", "pt": "Margem %", "fr": "Marge %", "fmt": "pct", "default": True},
+    "quantity":   {"es": "Volumen", "en": "Volume", "pt": "Volume", "fr": "Volume", "fmt": "qty", "default": True},
+    "price":      {"es": "Precio unitario", "en": "Unit price", "pt": "Preço unitário", "fr": "Prix unitaire", "fmt": "unit", "default": True},
+    "unit_cost":  {"es": "Costo unitario", "en": "Unit cost", "pt": "Custo unitário", "fr": "Coût unitaire", "fmt": "unit", "default": False},
+    "lines":      {"es": "Líneas", "en": "Order lines", "pt": "Linhas", "fr": "Lignes", "fmt": "int", "default": False},
+    "sales_open": {"es": "Cartera abierta", "en": "Open orders", "pt": "Carteira aberta", "fr": "Carnet", "fmt": "money", "default": False},
 }
 
 # Captions that must never be treated as a base metric: they are derived values
@@ -1037,6 +1208,12 @@ def is_subtotal(value: object) -> bool:
 '''
 
 _MODULES["core.metrics"] = r'''"""Safe aggregation. The single rule: ratios are never averaged."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -1192,6 +1369,12 @@ tab can show the user exactly what was recognised and what was ignored.
 
 Nothing here touches disk: input is bytes, output is an in-memory dataframe.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -1636,6 +1819,12 @@ The margin bridge uses profit = q·(p - c):
              + (q1 - q0)·(p0-c0) [volume]
 """
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import pandas as pd
@@ -1794,6 +1983,12 @@ So the seasonality index is computed per group and each group is graded. Groups
 whose two sides are mutually impossible are never projected; they are surfaced
 as an explicit warning instead of quietly producing a wrong forecast.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -1972,6 +2167,12 @@ def multi_year_trend(fy_tidy: pd.DataFrame, years: list[int], level: str | None 
 '''
 
 _MODULES["core.charts"] = r'''"""Reusable Plotly builders. One visual language across every tab."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -2456,6 +2657,12 @@ def heatmap(pivot: pd.DataFrame, title: str, fmt: str = ".0%") -> go.Figure:
 
 _MODULES["core.ui"] = r'''"""Small shared UI pieces: KPI cards, table styling, in-memory Excel export."""
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import io
@@ -2635,6 +2842,12 @@ Every bullet carries a USD figure. Nothing generic, nothing that could have been
 written before seeing the data. Sentences live in `core.i18n` as templates so
 the whole tab switches language with everything else.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -2868,6 +3081,12 @@ month a year ago, so a month can be judged against both its predecessor and its
 year-ago self.
 """
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 from dataclasses import replace
@@ -3029,6 +3248,12 @@ Splitting them matters: growing 10% by discounting shows up as a high sales
 score dragged down by a low margin one, which a single number would hide. There
 is no upper cap; the floor is 10 so a near-dead account still lands on the scale.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -3251,6 +3476,12 @@ No JavaScript, no external assets, no chart library — every bar is hand-writte
 SVG. That keeps the file small, makes it render identically in any browser, and
 means Ctrl+P → Save as PDF produces exactly what the screen shows.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -3614,6 +3845,12 @@ Uploads are consumed as bytes from memory, parsed into dataframes held only in
 timer expires, or when the user hits "Clear everything".
 """
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import gc
@@ -3701,6 +3938,12 @@ def clear_all(keep_preferences: bool = False) -> None:
 '''
 
 _MODULES["core.context"] = r'''"""Sidebar state + the filtered slice every view reads from."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -3902,6 +4145,12 @@ def build_sidebar(ytd, fy) -> Context:
 
 _MODULES["views.evolution"] = r'''"""Tab — Monthly evolution: this month's YTD snapshot vs last month's."""
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import numpy as np
@@ -4044,6 +4293,12 @@ def render(ctx) -> None:
 '''
 
 _MODULES["views.overview"] = r'''"""Tab 1 — Executive overview: KPIs, budget progress, bridges, landing."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -4211,6 +4466,12 @@ that keeps a client trading under two account codes together) and answers, in
 order: how big, how is it doing, why did it move, what does it buy, what is
 already booked, and where will it land.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -4502,6 +4763,12 @@ the budget gap it closes, which accounts it belongs to, and where it flips a
 negative year-on-year variance into a positive one once it ships.
 """
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import numpy as np
@@ -4657,6 +4924,12 @@ _MODULES["views.fullyear"] = r'''"""Tab 2 — YTD vs Full Year: seasonality, lan
 This is the tab that needs both files, and the one where the basis mismatch
 between them has to be stated out loud rather than buried.
 """
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -4815,6 +5088,12 @@ def render(ctx) -> None:
 '''
 
 _MODULES["views.dimension"] = r'''"""Tabs 3 & 4 — Customer and Product analysis. One engine, two entry points."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -4996,6 +5275,12 @@ def render(ctx, mode: str = "customer") -> None:
 
 _MODULES["views.deviations"] = r'''"""Tab 5 — Deviation radar: everything off track, ranked by USD, not by percent."""
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import numpy as np
@@ -5137,6 +5422,12 @@ def render(ctx) -> None:
 
 _MODULES["views.strategy"] = r'''"""Tab 6 — Strategy bullets and next steps, generated from the filtered numbers."""
 
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
+
 from __future__ import annotations
 
 import datetime as dt
@@ -5238,6 +5529,12 @@ def render(ctx) -> None:
 '''
 
 _MODULES["views.onepager"] = r'''"""Tab — Executive score and one-page export."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -5375,6 +5672,12 @@ def render(ctx) -> None:
 '''
 
 _MODULES["views.dataquality"] = r'''"""Tab 7 — Data & quality: what was parsed, what was pruned, what does not reconcile."""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+# Uso licenciado; prohibida su reproducción o distribución sin autorización escrita.
+# Contacto: katyasam13@gmail.com
+
 
 from __future__ import annotations
 
@@ -5571,9 +5874,11 @@ def sidebar_session() -> None:
     st.sidebar.markdown(f"### {t('session')}")
     # The widget writes straight into session_state["lang"], so a language
     # change is picked up by every t() call on the same rerun.
-    st.sidebar.radio(
-        t("language"), ["es", "en"], horizontal=True, key="lang",
-        format_func=lambda v: "Español" if v == "es" else "English",
+    _lang_names = {"es": "🇪🇸 Español", "en": "🇬🇧 English",
+                   "pt": "🇧🇷 Português", "fr": "🇫🇷 Français"}
+    st.sidebar.selectbox(
+        t("language"), ["es", "en", "pt", "fr"], key="lang",
+        format_func=lambda v: _lang_names[v],
     )
 
     st.session_state["idle_minutes"] = st.sidebar.slider(
@@ -5712,6 +6017,9 @@ def main() -> None:
         onepager.render(ctx)
     with tabs[10]:
         dataquality.render(ctx)
+
+    st.divider()
+    st.caption(t("footer_copyright"))
 
 
 if __name__ == "__main__":
