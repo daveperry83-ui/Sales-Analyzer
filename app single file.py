@@ -139,12 +139,16 @@ CSS = f"""
   }}
   .rb-card {{
       background: {PAPER}; border: 1px solid {RULE}; border-radius: 8px;
-      padding: 0.9rem 1rem; height: 100%;
+      padding: 0.9rem 1rem 0.9rem 0.85rem; height: 100%;
+      border-left: 4px solid {RULE}; transition: border-color .15s;
   }}
+  .rb-acc-up {{ border-left-color: {POSITIVE}; }}
+  .rb-acc-down {{ border-left-color: {NEGATIVE}; }}
+  .rb-acc-flat {{ border-left-color: {MUTED}; }}
   .rb-card .rb-label {{ color: {MUTED}; font-size: 0.74rem; text-transform: uppercase;
       letter-spacing: 0.06em; margin-bottom: 0.2rem; }}
   .rb-card .rb-value {{ color: {NAVY}; font-size: 1.55rem; font-weight: 650; line-height: 1.1; }}
-  .rb-card .rb-delta {{ font-size: 0.8rem; margin-top: 0.35rem; }}
+  .rb-card .rb-delta {{ font-size: 0.8rem; margin-top: 0.35rem; font-variant-numeric: tabular-nums; }}
   .rb-up {{ color: {POSITIVE}; }} .rb-down {{ color: {NEGATIVE}; }} .rb-flat {{ color: {MUTED}; }}
   .rb-note {{ color: {MUTED}; font-size: 0.82rem; margin: -0.4rem 0 0.9rem 0; }}
   .rb-chip {{ display:inline-block; padding: 0.12rem 0.5rem; border-radius: 999px;
@@ -239,6 +243,61 @@ STRINGS: dict[str, dict[str, str]] = {
     "cancel":          {"es": "Cancelar", "en": "Cancel"},
     "none":            {"es": "(ninguna)", "en": "(none)"},
     "empty_all":       {"es": "Vacío = todos", "en": "Empty = all"},
+
+    # ----------------------------------------------------------- evolution --
+    "tab_evolution":   {"es": "Evolución mensual", "en": "Monthly evolution"},
+    "ev_title":        {"es": "Evolución mes a mes", "en": "Month-over-month evolution"},
+    "ev_note":         {"es": "Compara el YTD de este mes contra el YTD del mes pasado. La diferencia es el movimiento del mes; el archivo trae además el año anterior, así que cada mes se juzga contra el mes previo y contra el mismo mes del año pasado.",
+                        "en": "Compares this month's YTD against last month's YTD. The difference is the month's movement; the file also carries last year, so each month is judged against the prior month and against the same month a year ago."},
+    "ev_need_prev":    {"es": "Carga el archivo del mes pasado en «Mes anterior (YTD)» en el panel lateral para habilitar esta vista.",
+                        "en": "Load last month's file under “Previous month (YTD)” in the sidebar to enable this view."},
+    "ev_how":          {"es": "¿Cómo tener el archivo del mes pasado?", "en": "How to get last month's file?"},
+    "ev_how_body":     {"es": "Cada cierre, **guarda** el export YTD que descargas. Al mes siguiente subes el nuevo en «Archivo YTD» y el anterior en «Mes anterior». Con dos cierres ya funciona. La app no guarda historial, así que el archivado depende de ti.",
+                        "en": "Each close, **save** the YTD export you download. Next month you load the new one under “YTD file” and the previous one under “Previous month”. Two closes are enough. The app keeps no history, so archiving is up to you."},
+    "ev_err_year":     {"es": "El archivo del mes pasado no contiene el año {year}. ¿Subiste el archivo correcto?",
+                        "en": "Last month's file has no {year} data. Did you load the right file?"},
+    "ev_err_swapped":  {"es": "El archivo del «mes pasado» ({prev}) tiene más ventas que el de «este mes» ({now}). Parece que los subiste al revés: el más reciente va en «Archivo YTD».",
+                        "en": "The “last month” file ({prev}) has more sales than “this month” ({now}). They look swapped: the newer one goes under “YTD file”."},
+    "ev_err_same":     {"es": "Los dos archivos tienen el mismo total: parecen ser el mismo cierre. Sube dos meses distintos.",
+                        "en": "Both files share the same total: they look like the same close. Load two different months."},
+    "ev_verdict":      {"es": "Veredicto del mes", "en": "Month verdict"},
+    "ev_improving":    {"es": "mejorando", "en": "improving"},
+    "ev_declining":    {"es": "retrocediendo", "en": "declining"},
+    "ev_stable":       {"es": "estable", "en": "stable"},
+    "ev_month_sales":  {"es": "Ventas del mes", "en": "Month sales"},
+    "ev_vs_year_ago":  {"es": "{v} vs mismo mes del año pasado", "en": "{v} vs same month last year"},
+    "ev_month_margin": {"es": "Margen del mes", "en": "Month margin"},
+    "ev_month_profit": {"es": "profit del mes {v}", "en": "month profit {v}"},
+    "ev_landing_move": {"es": "Aterrizaje proyectado", "en": "Projected landing"},
+    "ev_landing_delta": {"es": "{v} vs el mes pasado", "en": "{v} vs last month"},
+    "ev_drv_sales":    {"es": "Puntaje de ventas {v}", "en": "Sales score {v}"},
+    "ev_drv_margin":   {"es": "Puntaje de margen {v}", "en": "Margin score {v}"},
+    "ev_movers":       {"es": "Quién aceleró y quién se frenó (ventas del mes)",
+                        "en": "Who accelerated and who slowed (month sales)"},
+    "ev_accelerating": {"es": "Aportaron este mes", "en": "Contributed this month"},
+    "ev_slowing":      {"es": "Restaron este mes", "en": "Detracted this month"},
+    "ev_month_year_ago": {"es": "Mismo mes año pasado", "en": "Same month last year"},
+    "ev_month_this":   {"es": "Este mes", "en": "This month"},
+    "ev_vs_year_chart": {"es": "Ventas del mes: este año vs el año pasado",
+                         "en": "Month sales: this year vs last year"},
+    "ev_yoy_note":     {"es": "El mes aportó {now} contra {py} del mismo mes del año pasado ({yoy}).",
+                        "en": "The month contributed {now} against {py} in the same month last year ({yoy})."},
+    "ev_alerts":       {"es": "Alertas de cambio de tendencia", "en": "Trend-change alerts"},
+    "ev_alert_slow":   {"es": "**{name}** aportó {now} este mes, contra {py} el mismo mes del año pasado: se está desacelerando.",
+                        "en": "**{name}** contributed {now} this month, against {py} a year ago: it is decelerating."},
+    "ev_alert_margin": {"es": "**{name}** vendió {sales} este mes pero su margen cayó {pp} contra el mismo mes del año pasado.",
+                        "en": "**{name}** sold {sales} this month but its margin fell {pp} versus the same month last year."},
+    "ev_alert_stall":  {"es": "**{name}** no facturó este mes; el mismo mes del año pasado hizo {py}.",
+                        "en": "**{name}** did not bill this month; a year ago it did {py} in the same month."},
+    "ev_detail":       {"es": "Detalle mensual", "en": "Monthly detail"},
+    "ev_col_month":    {"es": "Ventas mes", "en": "Month sales"},
+    "ev_col_month_py": {"es": "Mes año pasado", "en": "Month last year"},
+    "ev_col_yoy":      {"es": "Δ vs año pasado", "en": "Δ vs last year"},
+    "ev_col_margin":   {"es": "Margen mes", "en": "Month margin"},
+    "ev_col_margin_pp": {"es": "Δ margen pp", "en": "Δ margin pp"},
+    "ev_col_ytd_prev": {"es": "YTD mes pasado", "en": "YTD last month"},
+    "ev_col_ytd_now":  {"es": "YTD ahora", "en": "YTD now"},
+    "ev_col_mom":      {"es": "Δ YTD %", "en": "Δ YTD %"},
 
     # --------------------------------------------------------------- upload --
     "upload_title":    {"es": "Cargar archivos", "en": "Load files"},
@@ -917,7 +976,7 @@ TOGGLEABLE_METRICS = {
     "price":      {"es": "Precio unitario", "en": "Unit price",  "fmt": "unit",  "default": True},
     "unit_cost":  {"es": "Costo unitario",  "en": "Unit cost",   "fmt": "unit",  "default": False},
     "lines":      {"es": "Líneas",          "en": "Order lines", "fmt": "int",   "default": False},
-    "sales_open": {"es": "Cartera abierta", "en": "Open orders", "fmt": "money", "default": True},
+    "sales_open": {"es": "Cartera abierta", "en": "Open orders", "fmt": "money", "default": False},
 }
 
 # Captions that must never be treated as a base metric: they are derived values
@@ -2131,7 +2190,7 @@ def bullet(value: float, target: float, reference: float, title: str) -> go.Figu
         value=value,
         delta={"reference": target, "valueformat": ",.0f",
                "increasing": {"color": T.POSITIVE}, "decreasing": {"color": T.NEGATIVE}},
-        number={"prefix": "$", "valueformat": ",.0f", "font": {"size": 26}},
+        number={"prefix": "$", "valueformat": ",.0f", "font": {"size": 22}},
         gauge={
             "shape": "bullet",
             "axis": {"range": [0, top], "tickprefix": "$", "tickformat": ",.2s"},
@@ -2146,7 +2205,10 @@ def bullet(value: float, target: float, reference: float, title: str) -> go.Figu
         },
         title={"text": title, "font": {"size": 13, "color": T.MUTED}},
     ))
-    fig.update_layout(height=150, margin=dict(l=140, r=20, t=30, b=20))
+    fig.update_layout(height=160, margin=dict(l=8, r=24, t=52, b=20),
+                      title=dict(text=title, font=dict(size=13, color=T.MUTED),
+                                 x=0, xanchor="left"))
+    fig.update_traces(title=dict(text=""))   # title moved to the layout, above the bar
     return fig
 
 
@@ -2414,19 +2476,24 @@ _FMT = {
 }
 
 
+def _goodness(direction, higher_is_better) -> str:
+    if direction is None or (isinstance(direction, float) and np.isnan(direction)) \
+            or direction == 0:
+        return "flat"
+    return "up" if (direction > 0) == higher_is_better else "down"
+
+
 def kpi_card(label: str, value: str, deltas: list[tuple[str, float, bool]] | None = None) -> str:
     rows = ""
-    for text, direction, higher_is_better in deltas or []:
-        if direction is None or (isinstance(direction, float) and np.isnan(direction)):
-            cls = "rb-flat"
-        elif direction == 0:
-            cls = "rb-flat"
-        else:
-            good = (direction > 0) == higher_is_better
-            cls = "rb-up" if good else "rb-down"
-        rows += f'<div class="rb-delta {cls}">{html_escape(str(text))}</div>'
+    accent = "flat"
+    for i, (text, direction, higher_is_better) in enumerate(deltas or []):
+        good = _goodness(direction, higher_is_better)
+        if i == 0:
+            accent = good                              # card stripe follows the lead metric
+        arrow = "▲ " if good == "up" else "▼ " if good == "down" else ""
+        rows += f'<div class="rb-delta rb-{good}">{arrow}{html_escape(str(text))}</div>'
     return (
-        f'<div class="rb-card"><div class="rb-label">{label}</div>'
+        f'<div class="rb-card rb-acc-{accent}"><div class="rb-label">{label}</div>'
         f'<div class="rb-value">{html_escape(str(value))}</div>{rows}</div>'
     )
 
@@ -2783,6 +2850,164 @@ def build_all(cmp_cust: pd.DataFrame, cmp_prod: pd.DataFrame, sales_br: dict,
         "oportunidades": opportunities(cmp_cust, cmp_prod, cust_label),
         "acciones": actions(cmp_cust, forecast, sales_br, margin_br, cust_label),
     }
+'''
+
+_MODULES["core.evolution"] = r'''"""Month-over-month evolution from two YTD snapshots.
+
+The app stores nothing between sessions, so "last month" is a file the user
+kept: the same YTD export downloaded a month earlier. Both snapshots are
+year-to-date for the same year, so the movement *in* the latest month is their
+difference:
+
+    month(this)      = YTD_now(2026) − YTD_prev(2026)
+    month(last year) = YTD_now(2025) − YTD_prev(2025)
+
+That recovers a monthly figure without the Month column the BI cannot produce,
+and — because the YTD file carries both year bands — it also yields the same
+month a year ago, so a month can be judged against both its predecessor and its
+year-ago self.
+"""
+
+from __future__ import annotations
+
+from dataclasses import replace
+
+import numpy as np
+import pandas as pd
+
+from core import metrics as MX, scoring
+
+LEVEL = "enterprise"
+MATCH_TOL = 0.005
+
+
+def _ytd(tidy: pd.DataFrame, year: int, level: str) -> pd.DataFrame:
+    block = tidy[(tidy["year"] == year) & (tidy[level] != "N/D")]
+    cols = ["sales", "profit", "quantity", "sales_open", "sales_bdg"]
+    cols = [c for c in cols if c in block.columns]
+    agg = block.groupby(level, dropna=False)[cols].sum(min_count=1).fillna(0.0)
+    return agg
+
+
+def validate(now_tidy: pd.DataFrame, prev_tidy: pd.DataFrame, year: int) -> dict:
+    """Guard against a swapped or mismatched pair before computing anything."""
+    now_total = float(now_tidy[now_tidy["year"] == year]["sales"].fillna(0).sum())
+    prev_total = float(prev_tidy[prev_tidy["year"] == year]["sales"].fillna(0).sum())
+    ok_years = year in set(prev_tidy["year"].unique())
+    swapped = prev_total > now_total * (1 + MATCH_TOL)
+    identical = abs(now_total - prev_total) <= now_total * MATCH_TOL and now_total > 0
+    return {
+        "ok": ok_years and not swapped and not identical,
+        "swapped": swapped, "identical": identical, "year_missing": not ok_years,
+        "now_total": now_total, "prev_total": prev_total,
+    }
+
+
+def month_table(now_tidy: pd.DataFrame, prev_tidy: pd.DataFrame,
+                current_year: int, level: str = LEVEL) -> pd.DataFrame:
+    """One row per group: the month's movement, this year and a year ago."""
+    prior = current_year - 1
+    now_cur = _ytd(now_tidy, current_year, level)
+    prev_cur = _ytd(prev_tidy, current_year, level)
+    now_py = _ytd(now_tidy, prior, level)
+    prev_py = _ytd(prev_tidy, prior, level)
+
+    idx = now_cur.index.union(prev_cur.index).union(now_py.index).union(prev_py.index)
+    frame = pd.DataFrame(index=idx)
+
+    def diff(a, b, col):
+        return a.reindex(idx)[col].fillna(0.0) - b.reindex(idx)[col].fillna(0.0) \
+            if col in a.columns else pd.Series(0.0, index=idx)
+
+    frame["ytd_now"] = now_cur.reindex(idx)["sales"].fillna(0.0)
+    frame["ytd_prev"] = prev_cur.reindex(idx)["sales"].fillna(0.0)
+    frame["month_sales"] = diff(now_cur, prev_cur, "sales")
+    frame["month_profit"] = diff(now_cur, prev_cur, "profit")
+    frame["month_qty"] = diff(now_cur, prev_cur, "quantity")
+    frame["month_sales_py"] = diff(now_py, prev_py, "sales")
+    frame["month_profit_py"] = diff(now_py, prev_py, "profit")
+
+    # Margin of the month itself, recomputed from its own components.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        frame["month_margin"] = np.where(frame["month_sales"] != 0,
+                                         frame["month_profit"] / frame["month_sales"], np.nan)
+        frame["month_margin_py"] = np.where(frame["month_sales_py"] != 0,
+                                            frame["month_profit_py"] / frame["month_sales_py"],
+                                            np.nan)
+        frame["mom_growth"] = np.where(frame["ytd_prev"] != 0,
+                                       (frame["ytd_now"] - frame["ytd_prev"]) / frame["ytd_prev"].abs(),
+                                       np.nan)
+        frame["yoy_month"] = np.where(frame["month_sales_py"] != 0,
+                                      (frame["month_sales"] - frame["month_sales_py"])
+                                      / frame["month_sales_py"].abs(), np.nan)
+
+    frame["margin_delta_pp"] = (frame["month_margin"] - frame["month_margin_py"]) * 100
+    return frame.sort_values("month_sales", ascending=False)
+
+
+def totals(now_tidy: pd.DataFrame, prev_tidy: pd.DataFrame,
+           current_year: int) -> dict:
+    """Portfolio-level month figures."""
+    tbl = month_table(now_tidy, prev_tidy, current_year, LEVEL)
+    month_sales = float(tbl["month_sales"].sum())
+    month_profit = float(tbl["month_profit"].sum())
+    month_sales_py = float(tbl["month_sales_py"].sum())
+    return {
+        "month_sales": month_sales,
+        "month_profit": month_profit,
+        "month_margin": month_profit / month_sales if month_sales else np.nan,
+        "month_sales_py": month_sales_py,
+        "yoy": (month_sales - month_sales_py) / abs(month_sales_py)
+        if month_sales_py else np.nan,
+        "ytd_now": float(tbl["ytd_now"].sum()),
+        "ytd_prev": float(tbl["ytd_prev"].sum()),
+    }
+
+
+def score_pair(ctx, prev_parsed) -> tuple:
+    """Score this month's snapshot and last month's, for the headline verdict."""
+    now_score = scoring.compute(ctx, ctx_weights(ctx))
+    prev_ctx = replace(
+        ctx, tidy=prev_parsed.tidy, ytd=prev_parsed,
+        selected_groups=[], selected_accounts=[],
+    )
+    prev_score = scoring.compute(prev_ctx, ctx_weights(ctx))
+    return now_score, prev_score
+
+
+def ctx_weights(ctx) -> tuple[float, float]:
+    import streamlit as st
+    w = st.session_state.get("sc_w", int(scoring.DEFAULT_WEIGHTS[0] * 100))
+    return (w / 100.0, 1 - w / 100.0)
+
+
+def movers(tbl: pd.DataFrame, column: str, improving: bool, n: int = 6,
+           min_abs: float = 0.0) -> pd.DataFrame:
+    d = tbl[tbl[column].abs() > min_abs]
+    d = d[d[column] > 0] if improving else d[d[column] < 0]
+    return d.reindex(d[column].abs().sort_values(ascending=False).index).head(n)
+
+
+def trend_alerts(tbl: pd.DataFrame) -> list[dict]:
+    """Sign flips and margin swings — the changes a month view exists to catch."""
+    alerts: list[dict] = []
+    # This month positive but a year ago it was bigger — decelerating winners.
+    slowing = tbl[(tbl["month_sales"] > 0) & (tbl["month_sales_py"] > 0)
+                  & (tbl["month_sales"] < tbl["month_sales_py"] * 0.7)
+                  & (tbl["month_sales_py"] > 5_000)]
+    for name, r in slowing.sort_values("month_sales_py", ascending=False).head(3).iterrows():
+        alerts.append({"kind": "slow", "name": name,
+                       "now": r["month_sales"], "py": r["month_sales_py"]})
+    # Margin of the month eroded hard versus the same month last year.
+    eroding = tbl[(tbl["margin_delta_pp"] < -4) & (tbl["month_sales"] > 10_000)]
+    for name, r in eroding.sort_values("margin_delta_pp").head(3).iterrows():
+        alerts.append({"kind": "margin", "name": name,
+                       "pp": r["margin_delta_pp"], "sales": r["month_sales"]})
+    # Stopped buying this month but was active a year ago.
+    stalled = tbl[(tbl["month_sales"] <= 0) & (tbl["month_sales_py"] > 10_000)]
+    for name, r in stalled.sort_values("month_sales_py", ascending=False).head(3).iterrows():
+        alerts.append({"kind": "stall", "name": name, "py": r["month_sales_py"]})
+    return alerts
 '''
 
 _MODULES["core.scoring"] = r'''"""Progress score: a hybrid of sales and margin, where 100 = on budget.
@@ -3396,7 +3621,8 @@ import time
 
 import streamlit as st
 
-DATA_KEYS = ("ytd", "fy", "ytd_name", "fy_name", "diagnosis", "uploader_epoch")
+DATA_KEYS = ("ytd", "fy", "prev", "ytd_name", "fy_name", "prev_name",
+             "diagnosis", "uploader_epoch")
 DEFAULT_IDLE_MINUTES = 30
 
 
@@ -3406,6 +3632,8 @@ def init() -> None:
     st.session_state.setdefault("fy", None)
     st.session_state.setdefault("ytd_name", None)
     st.session_state.setdefault("fy_name", None)
+    st.session_state.setdefault("prev", None)
+    st.session_state.setdefault("prev_name", None)
     st.session_state.setdefault("presets", {})
     st.session_state.setdefault("idle_minutes", DEFAULT_IDLE_MINUTES)
     st.session_state.setdefault("last_touch", time.time())
@@ -3433,7 +3661,8 @@ def enforce_idle_timeout() -> bool:
 
 
 def has_data() -> bool:
-    return st.session_state.get("ytd") is not None or st.session_state.get("fy") is not None
+    return (st.session_state.get("ytd") is not None
+            or st.session_state.get("fy") is not None)
 
 
 def store(slot: str, parsed, filename: str) -> None:
@@ -3503,6 +3732,7 @@ class Context:
     lang: str = "es"
     selected_groups: list[str] = field(default_factory=list)
     selected_accounts: list[str] = field(default_factory=list)
+    prev: object | None = None
 
     @property
     def has_both(self) -> bool:
@@ -3666,7 +3896,151 @@ def build_sidebar(ytd, fy) -> Context:
         include_open=include_open, materiality=float(materiality), unit=unit or "kg",
         active_metrics=active, lang=st.session_state.get("lang", "es"),
         selected_groups=sel_groups, selected_accounts=sel_accounts,
+        prev=st.session_state.get("prev"),
     )
+'''
+
+_MODULES["views.evolution"] = r'''"""Tab — Monthly evolution: this month's YTD snapshot vs last month's."""
+
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+import streamlit as st
+
+from core import charts, evolution, scoring, theme as T, ui
+from core.i18n import t
+
+LEVEL = "enterprise"
+
+
+def render(ctx) -> None:
+    st.markdown(f"### {t('ev_title')}")
+    ui.note(t("ev_note"))
+
+    prev = st.session_state.get("prev")
+    if prev is None:
+        st.info(t("ev_need_prev"))
+        with st.expander(t("ev_how")):
+            st.markdown(t("ev_how_body"))
+        return
+
+    year = ctx.current_year
+    check = evolution.validate(ctx.ytd.tidy, prev.tidy, year)
+    if not check["ok"]:
+        if check["year_missing"]:
+            st.error(t("ev_err_year", year=year), icon="⚠️")
+        elif check["swapped"]:
+            st.error(t("ev_err_swapped",
+                       now=T.money_compact(check["now_total"]),
+                       prev=T.money_compact(check["prev_total"])), icon="⚠️")
+        elif check["identical"]:
+            st.warning(t("ev_err_same"), icon="⚠️")
+        return
+
+    tbl = evolution.month_table(ctx.ytd.tidy, prev.tidy, year, LEVEL)
+    tot = evolution.totals(ctx.ytd.tidy, prev.tidy, year)
+    now_score, prev_score = evolution.score_pair(ctx, prev)
+
+    # --- verdict ------------------------------------------------------------
+    ds = now_score.value - prev_score.value
+    verdict = (t("ev_improving") if ds > 1 else
+               t("ev_declining") if ds < -1 else t("ev_stable"))
+    k1, k2, k3, k4 = st.columns(4)
+    k1.markdown(ui.kpi_card(
+        t("ev_verdict"), f"{prev_score.value:,.0f} → {now_score.value:,.0f}",
+        [(f"{verdict} ({ds:+.0f})", ds, True)]), unsafe_allow_html=True)
+    k2.markdown(ui.kpi_card(
+        t("ev_month_sales"), T.money_compact(tot["month_sales"]),
+        [(t("ev_vs_year_ago", v=T.pct(tot["yoy"], 0)), tot["yoy"], True)]),
+        unsafe_allow_html=True)
+    k3.markdown(ui.kpi_card(
+        t("ev_month_margin"), T.pct(tot["month_margin"], 1),
+        [(t("ev_month_profit", v=T.money_compact(tot["month_profit"])),
+          tot["month_profit"], True)]), unsafe_allow_html=True)
+    k4.markdown(ui.kpi_card(
+        t("ev_landing_move"), T.money_compact(now_score.landing),
+        [(t("ev_landing_delta", v=T.signed(now_score.landing - prev_score.landing)),
+          now_score.landing - prev_score.landing, True)]), unsafe_allow_html=True)
+
+    drivers = []
+    if abs(now_score.sales_score - prev_score.sales_score) > 0.5:
+        drivers.append(t("ev_drv_sales",
+                         v=f"{prev_score.sales_score:,.0f}→{now_score.sales_score:,.0f}"))
+    if abs(now_score.margin_score - prev_score.margin_score) > 0.5:
+        drivers.append(t("ev_drv_margin",
+                         v=f"{prev_score.margin_score:,.0f}→{now_score.margin_score:,.0f}"))
+    if drivers:
+        ui.note(" · ".join(drivers))
+
+    st.divider()
+
+    # --- improved vs worsened ------------------------------------------------
+    st.markdown(f"#### {t('ev_movers')}")
+    up = evolution.movers(tbl, "month_sales", improving=True, n=ctx.top_n)
+    down = evolution.movers(tbl, "month_sales", improving=False, n=ctx.top_n)
+    left, right = st.columns(2)
+    with left:
+        st.plotly_chart(
+            charts.diverging_bars(up.reset_index(), LEVEL, "month_sales",
+                                  t("ev_accelerating"), top_n=ctx.top_n),
+            width="stretch", key="ev_up")
+    with right:
+        st.plotly_chart(
+            charts.diverging_bars(down.reset_index(), LEVEL, "month_sales",
+                                  t("ev_slowing"), top_n=ctx.top_n),
+            width="stretch", key="ev_down")
+
+    # --- month vs same month last year --------------------------------------
+    comp = tbl[(tbl["month_sales"].abs() > 0) | (tbl["month_sales_py"].abs() > 0)].copy()
+    comp = comp.reindex(comp["month_sales"].abs().sort_values(ascending=False).index)
+    comp = comp.head(ctx.top_n).reset_index()
+    fig = charts.grouped_bars(
+        comp, LEVEL, {"month_sales_py": t("ev_month_year_ago"),
+                      "month_sales": t("ev_month_this")},
+        t("ev_vs_year_chart"), top_n=ctx.top_n)
+    st.plotly_chart(fig, width="stretch", key="ev_yoy")
+    ui.note(t("ev_yoy_note", now=T.money_compact(tot["month_sales"]),
+              py=T.money_compact(tot["month_sales_py"]), yoy=T.pct(tot["yoy"], 0)))
+
+    # --- trend alerts --------------------------------------------------------
+    alerts = evolution.trend_alerts(tbl)
+    if alerts:
+        st.markdown(f"#### {t('ev_alerts')}")
+        M = T.money_compact
+        for a in alerts:
+            if a["kind"] == "slow":
+                st.markdown("- " + ui.md_escape(t(
+                    "ev_alert_slow", name=a["name"], now=M(a["now"]), py=M(a["py"]))))
+            elif a["kind"] == "margin":
+                st.markdown("- " + ui.md_escape(t(
+                    "ev_alert_margin", name=a["name"],
+                    pp=f"{a['pp']:+.1f} pp", sales=M(a["sales"]))))
+            elif a["kind"] == "stall":
+                st.markdown("- " + ui.md_escape(t(
+                    "ev_alert_stall", name=a["name"], py=M(a["py"]))))
+
+    st.divider()
+
+    # --- detail table --------------------------------------------------------
+    st.markdown(f"#### {t('ev_detail')}")
+    show = tbl.reset_index()
+    show = show[[LEVEL, "month_sales", "month_sales_py", "yoy_month",
+                 "month_margin", "margin_delta_pp", "ytd_prev", "ytd_now", "mom_growth"]]
+    show.columns = [ctx.label_for(LEVEL), t("ev_col_month"), t("ev_col_month_py"),
+                    t("ev_col_yoy"), t("ev_col_margin"), t("ev_col_margin_pp"),
+                    t("ev_col_ytd_prev"), t("ev_col_ytd_now"), t("ev_col_mom")]
+    st.dataframe(
+        ui.style_table(
+            show,
+            money_cols=[t("ev_col_month"), t("ev_col_month_py"),
+                        t("ev_col_ytd_prev"), t("ev_col_ytd_now")],
+            pct_cols=[t("ev_col_yoy"), t("ev_col_margin"), t("ev_col_mom")],
+            pp_cols=[t("ev_col_margin_pp")],
+            highlight=[t("ev_col_month"), t("ev_col_margin_pp")]),
+        width="stretch", height=420)
+    ui.download_button(t("download_table"), {"Evolution": show},
+                       f"evolucion_{year}.xlsx", key="dl_evolution")
 '''
 
 _MODULES["views.overview"] = r'''"""Tab 1 — Executive overview: KPIs, budget progress, bridges, landing."""
@@ -3715,9 +4089,21 @@ def render(ctx) -> None:
 
     cards = ui.metric_cards(cur, base, ctx.active_metrics,
                             t("vs_base_year", year=ctx.base_year), budget=cur)
-    ui.kpi_row(cards[:5])
-    if len(cards) > 5:
-        ui.kpi_row(cards[5:])
+    # Fold the standalone open-orders figure into the KPI row (with its budget-gap
+    # coverage) instead of a lonely card on its own line further down.
+    _budget = float(cur.get("sales_bdg") or 0)
+    if open_sales and "sales_open" not in ctx.active_metrics:
+        _gap = _budget - invoiced
+        _cover = open_sales / _gap if _gap > 0 else np.nan
+        cards.append(ui.kpi_card(
+            t("open_orders"), T.money_compact(open_sales),
+            [(t("ov_backlog_delta", pct=T.pct(_cover, 0),
+                gap=T.money_compact(max(_gap, 0))),
+              _cover if _cover == _cover else None, True)]))
+    # Keep up to 6 on a single row; only wrap when there are genuinely more.
+    per_row = len(cards) if len(cards) <= 6 else (len(cards) + 1) // 2
+    for i in range(0, len(cards), per_row):
+        ui.kpi_row(cards[i:i + per_row])
 
     st.divider()
 
@@ -3754,17 +4140,6 @@ def render(ctx) -> None:
                                 formatter=lambda v: T.qty(v, ctx.unit)),
             width="stretch", key="overview_3")
         open_orders = open_sales
-        gap = budget - invoiced
-        cover = open_orders / gap if gap > 0 else np.nan
-        st.markdown(
-            ui.kpi_card(
-                t("ov_backlog_card"), T.money_compact(open_orders),
-                [(t("ov_backlog_delta", pct=T.pct(cover, 0),
-                    gap=T.money_compact(max(gap, 0))),
-                  cover if cover == cover else None, True)],
-            ),
-            unsafe_allow_html=True,
-        )
         if pace and not np.isnan(pace.get("landing", np.nan)):
             st.plotly_chart(
                 charts.bullet(pace["landing"], pace["budget"], pace["prior_fy"],
@@ -5158,7 +5533,7 @@ from core.context import build_sidebar        # noqa: E402
 from core.i18n import t                       # noqa: E402
 from core.parser import parse_export          # noqa: E402
 from views import (backlog, customer, dataquality, deviations,   # noqa: E402
-                   dimension, fullyear, onepager, overview, strategy)
+                   dimension, evolution, fullyear, onepager, overview, strategy)
 
 
 st.set_page_config(
@@ -5238,8 +5613,12 @@ def sidebar_uploads() -> None:
         t("upload_fy"), type=["xlsx", "xlsm"], key=f"up_fy_{epoch}",
         help=t("upload_help"),
     )
+    prev_file = st.sidebar.file_uploader(
+        t("upload_prev"), type=["xlsx", "xlsm"], key=f"up_prev_{epoch}",
+        help=t("upload_prev_help"),
+    )
 
-    for slot, uploaded in (("ytd", ytd_file), ("fy", fy_file)):
+    for slot, uploaded in (("ytd", ytd_file), ("fy", fy_file), ("prev", prev_file)):
         if uploaded is None:
             continue
         if st.session_state.get(f"{slot}_name") == uploaded.name and \
@@ -5252,7 +5631,7 @@ def sidebar_uploads() -> None:
         except Exception as exc:  # noqa: BLE001 - surfaced to the user verbatim
             st.sidebar.error(t("upload_error", name=uploaded.name, error=exc))
 
-    for slot, label in (("ytd", "YTD"), ("fy", "Full Year")):
+    for slot, label in (("ytd", "YTD"), ("fy", "Full Year"), ("prev", t("prev_short"))):
         parsed = st.session_state.get(slot)
         if parsed is not None:
             years = parsed.substantive_years
@@ -5302,6 +5681,7 @@ def main() -> None:
         f"📊 {t('tab_overview')}",
         f"🏷️ {t('tab_client')}",
         f"📦 {t('tab_backlog')}",
+        f"📈 {t('tab_evolution')}",
         f"📐 {t('tab_fy')}",
         f"👥 {t('tab_customers')}",
         f"🧪 {t('tab_products')}",
@@ -5317,18 +5697,20 @@ def main() -> None:
     with tabs[2]:
         backlog.render(ctx)
     with tabs[3]:
-        fullyear.render(ctx)
+        evolution.render(ctx)
     with tabs[4]:
-        dimension.render(ctx, mode="customer")
+        fullyear.render(ctx)
     with tabs[5]:
-        dimension.render(ctx, mode="product")
+        dimension.render(ctx, mode="customer")
     with tabs[6]:
-        deviations.render(ctx)
+        dimension.render(ctx, mode="product")
     with tabs[7]:
-        strategy.render(ctx)
+        deviations.render(ctx)
     with tabs[8]:
-        onepager.render(ctx)
+        strategy.render(ctx)
     with tabs[9]:
+        onepager.render(ctx)
+    with tabs[10]:
         dataquality.render(ctx)
 
 
