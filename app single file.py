@@ -659,6 +659,73 @@ STRINGS: dict[str, dict[str, str]] = {
     "act_budget":      {"es": "**90 días · Cierre de brecha de budget** — plan cuenta por cuenta para las 5 mayores brechas proyectadas ({total}). Revisión quincenal con seguimiento de cartera abierta.",
                         "en": "**90 days · Budget gap closure** — account-by-account plan for the 5 largest projected gaps ({total}). Fortnightly review tracking open orders."},
 
+    # ------------------------------------------------------------ one-pager --
+    "tab_onepager":    {"es": "Puntaje y one-pager", "en": "Score & one-pager"},
+    "op_tab_title":    {"es": "Puntaje de progreso y one-pager ejecutivo",
+                        "en": "Progress score and executive one-pager"},
+    "op_note":         {"es": "El puntaje mezcla ventas y margen: 100 significa aterrizar exactamente en budget. No tiene tope — proyectar 15% por encima marca 115.",
+                        "en": "The score blends sales and margin: 100 means landing exactly on budget. It is uncapped — projecting 15% above scores 115."},
+    "op_title":        {"es": "Resumen ejecutivo de ventas", "en": "Executive sales summary"},
+    "op_generated":    {"es": "Generado", "en": "Generated"},
+    "op_confidential": {"es": "Uso interno Robertet", "en": "Robertet internal use"},
+    "op_vs_budget":    {"es": "Avance contra budget anual", "en": "Progress against annual budget"},
+    "op_up":           {"es": "Mayores aportes", "en": "Largest gains"},
+    "op_down":         {"es": "Mayores caídas", "en": "Largest drops"},
+    "op_worst_scores": {"es": "Puntajes más bajos", "en": "Lowest scores"},
+    "op_why":          {"es": "Por qué", "en": "Why"},
+    "op_actions":      {"es": "Diagnóstico y acciones", "en": "Diagnosis and actions"},
+    "op_bridge":       {"es": "Efecto volumen {volume} · efecto precio {price} sobre la variación del año.",
+                        "en": "Volume effect {volume} · price effect {price} on the year-on-year change."},
+    "op_backlog_line": {"es": "Cartera abierta {open}. Aterrizaje proyectado {land} contra un budget de {bdg}.",
+                        "en": "Open orders {open}. Projected landing {land} against a budget of {bdg}."},
+    "op_footer":       {"es": "Fuentes: {ytd} · {fy}. Cifras en USD. El budget está cargado a nivel grupo de cliente. Margen y precio se recalculan desde sus componentes, nunca se promedian. Documento generado en memoria; no se almacena ninguna copia.",
+                        "en": "Sources: {ytd} · {fy}. Figures in USD. Budget is loaded at customer-group level. Margin and price are recomputed from their components, never averaged. Generated in memory; no copy is stored."},
+    "op_export":       {"es": "Exportar one-pager", "en": "Export one-pager"},
+    "op_download":     {"es": "⬇ Descargar one-pager (HTML)", "en": "⬇ Download one-pager (HTML)"},
+    "op_print_hint":   {"es": "Ábrelo en el navegador y usa Ctrl+P → «Guardar como PDF». Ya viene configurado en A4 horizontal, una sola página.",
+                        "en": "Open it in the browser and press Ctrl+P → “Save as PDF”. It is already set to A4 landscape, single page."},
+    "op_preview":      {"es": "Vista previa", "en": "Preview"},
+
+    # -------------------------------------------------------------- scoring --
+    "sc_title":        {"es": "Puntaje", "en": "Score"},
+    "sc_sales_score":  {"es": "Puntaje ventas", "en": "Sales score"},
+    "sc_margin_score": {"es": "Puntaje margen", "en": "Margin score"},
+    "sc_weight_sales": {"es": "Peso de ventas (%)", "en": "Sales weight (%)"},
+    "sc_weight_margin": {"es": "Peso de margen", "en": "Margin weight"},
+    "sc_weight_help":  {"es": "El resto va a margen. Por defecto 60 / 40.",
+                        "en": "The rest goes to margin. Default 60 / 40."},
+    "sc_band_on":      {"es": "En budget", "en": "On budget"},
+    "sc_band_close":   {"es": "Cerca", "en": "Close"},
+    "sc_band_risk":    {"es": "En riesgo", "en": "At risk"},
+    "sc_band_critical": {"es": "Crítico", "en": "Critical"},
+    "sc_landing_vs":   {"es": "aterrizaje {land} vs budget {bdg}",
+                        "en": "landing {land} vs budget {bdg}"},
+    "sc_margin_vs":    {"es": "margen {cur} vs budget {bdg}",
+                        "en": "margin {cur} vs budget {bdg}"},
+    "sc_surplus":      {"es": "Proyecta {v} por encima del budget.",
+                        "en": "Projected {v} above budget."},
+    "sc_shortfall":    {"es": "Proyecta {v} por debajo del budget.",
+                        "en": "Projected {v} below budget."},
+    "sc_drag_sales":   {"es": "Las ventas son las que arrastran el puntaje.",
+                        "en": "Sales are what drag the score down."},
+    "sc_drag_margin":  {"es": "El margen es el que arrastra el puntaje.",
+                        "en": "Margin is what drags the score down."},
+    "sc_drag_both":    {"es": "Ventas y margen tiran parejo.",
+                        "en": "Sales and margin pull evenly."},
+    "sc_method_projected": {"es": "Calculado sobre el aterrizaje proyectado ({index} del año se logra a esta altura).",
+                            "en": "Computed on the projected landing ({index} of the year is booked by this point)."},
+    "sc_method_raw":   {"es": "Sin archivo histórico: se usa lo facturado más la cartera, no un aterrizaje proyectado.",
+                        "en": "No historical file: invoiced plus backlog is used, not a projected landing."},
+    "sc_no_budget":    {"es": "No hay budget en el filtro actual, así que no se puede calcular el puntaje. Agrupa por Cliente (grupo) o quita el filtro de cuentas.",
+                        "en": "There is no budget in the current filter, so the score cannot be computed. Group by customer group or clear the account filter."},
+    "sc_chart":        {"es": "Distancia al budget por {level} (0 = en budget)",
+                        "en": "Distance to budget by {level} (0 = on budget)"},
+    "sc_chart_note":   {"es": "Cada barra es el puntaje menos 100: a la derecha, proyectan superar su budget; a la izquierda, quedarse cortos.",
+                        "en": "Each bar is the score minus 100: to the right, projected above budget; to the left, short of it."},
+    "sc_material_note": {"es": "Se listan los grupos que pesan al menos 1% del budget total; los de budget simbólico se omiten para no encabezar el ranking con ruido.",
+                         "en": "Only groups worth at least 1% of total budget are listed; token budgets are left out so noise never tops the ranking."},
+    "sc_all_portfolio": {"es": "Portafolio completo", "en": "Full portfolio"},
+
     # --------------------------------------------------------------- common --
     "download_excel":  {"es": "Descargar Excel", "en": "Download Excel"},
     "download_table":  {"es": "Descargar tabla (Excel)", "en": "Download table (Excel)"},
@@ -2718,6 +2785,602 @@ def build_all(cmp_cust: pd.DataFrame, cmp_prod: pd.DataFrame, sales_br: dict,
     }
 '''
 
+_MODULES["core.scoring"] = r'''"""Progress score: a hybrid of sales and margin, where 100 = on budget.
+
+Two components, each anchored at 100 when it lands exactly on budget:
+
+    sales score  = projected sales landing ÷ sales budget × 100
+    margin score = margin % achieved ÷ margin % budgeted × 100
+    score        = w_sales · sales score + w_margin · margin score
+
+The sales side answers "where is the year heading", so it is built on the
+landing forecast (YTD ÷ seasonality index), not on raw attainment: 66 in August
+means the year is projected to close at 66% of budget, not that 66% is booked.
+
+The margin side is a ratio, so it needs no seasonal projection — a margin of
+41% against a budgeted 47% scores 87 whatever month it is.
+
+Splitting them matters: growing 10% by discounting shows up as a high sales
+score dragged down by a low margin one, which a single number would hide. There
+is no upper cap; the floor is 10 so a near-dead account still lands on the scale.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+import numpy as np
+import pandas as pd
+
+from core import metrics as MX
+from core.forecast import landing_forecast, portfolio_pace
+
+FLOOR = 10.0
+LEVEL = "enterprise"
+DEFAULT_WEIGHTS = (0.60, 0.40)          # sales, margin
+
+BANDS = [
+    (100.0, "on_budget"),
+    (90.0, "close"),
+    (75.0, "at_risk"),
+    (0.0, "critical"),
+]
+
+BAND_COLOURS = {
+    "on_budget": "#1F7A5A",
+    "close": "#4E8C4A",
+    "at_risk": "#C08A2E",
+    "critical": "#B03A2E",
+}
+
+
+def band_of(score: float) -> str:
+    if score is None or (isinstance(score, float) and np.isnan(score)):
+        return "critical"
+    for threshold, name in BANDS:
+        if score >= threshold:
+            return name
+    return "critical"
+
+
+def _ratio_score(value: float, target: float) -> float:
+    if not target or target <= 0 or value is None or np.isnan(value):
+        return float("nan")
+    return max(FLOOR, 100.0 * value / target)
+
+
+def blend(sales_score: float, margin_score: float,
+          weights: tuple[float, float] = DEFAULT_WEIGHTS) -> float:
+    """Weighted mean that degrades gracefully when one side is unavailable."""
+    ws, wm = weights
+    pairs = [(sales_score, ws), (margin_score, wm)]
+    usable = [(s, w) for s, w in pairs if s is not None and not np.isnan(s)]
+    if not usable:
+        return float("nan")
+    total_w = sum(w for _, w in usable)
+    if total_w <= 0:
+        return float("nan")
+    return sum(s * w for s, w in usable) / total_w
+
+
+@dataclass
+class Score:
+    value: float                      # blended, 100 = on budget, uncapped
+    sales_score: float
+    margin_score: float
+    weights: tuple[float, float]
+    landing: float
+    budget: float
+    ytd: float
+    backlog: float
+    margin: float                     # achieved margin %
+    margin_budget: float              # budgeted margin %
+    projected: bool                   # False when there is no seasonality index
+    index: float = float("nan")
+    band: str = "critical"
+    components: dict = field(default_factory=dict)
+    by_group: pd.DataFrame | None = None
+
+    @property
+    def surplus(self) -> float:
+        return self.landing - self.budget
+
+    @property
+    def colour(self) -> str:
+        return BAND_COLOURS[self.band]
+
+    def material(self, min_share: float = 0.01) -> pd.DataFrame | None:
+        """Groups worth naming: at least `min_share` of the total budget."""
+        if self.by_group is None or self.by_group.empty:
+            return self.by_group
+        keep = self.by_group[self.by_group["weight"] >= min_share]
+        return keep if not keep.empty else self.by_group
+
+    @property
+    def drag(self) -> str:
+        """Which side is pulling the score down — the sentence writes itself."""
+        s, m = self.sales_score, self.margin_score
+        if np.isnan(s) or np.isnan(m):
+            return "none"
+        if abs(s - m) < 3:
+            return "both"
+        return "margin" if m < s else "sales"
+
+
+def _seasonality(ctx) -> tuple[float, bool]:
+    if not ctx.has_both:
+        return float("nan"), False
+    try:
+        pace = portfolio_pace(ctx.ytd.tidy, ctx.fy.tidy,
+                              ctx.current_year, ctx.current_year - 1)
+        idx = pace.get("pace_index") if pace else None
+        if idx and not np.isnan(idx) and idx > 0:
+            return float(idx), True
+    except Exception:
+        pass
+    return float("nan"), False
+
+
+def _group_scores(ctx, index: float, projected: bool,
+                  weights: tuple[float, float]) -> pd.DataFrame | None:
+    """Per-group hybrid score, so the worst offenders are nameable."""
+    block = ctx.slice_year(ctx.current_year)
+    grouped = MX.aggregate(block, LEVEL)
+    grouped = grouped[grouped["sales_bdg"].fillna(0) > 0].copy()
+    if grouped.empty:
+        return None
+
+    landing_by_group = None
+    if ctx.has_both:
+        try:
+            fc = landing_forecast(ctx.ytd.tidy, ctx.fy.tidy,
+                                  ctx.current_year, ctx.current_year - 1, LEVEL)
+            landing_by_group = fc["landing"]
+        except Exception:
+            landing_by_group = None
+
+    grouped = grouped.set_index(LEVEL)
+    invoiced = grouped["sales"].fillna(0.0)
+    backlog = grouped["sales_open"].fillna(0.0)
+    if landing_by_group is not None:
+        landing = landing_by_group.reindex(grouped.index)
+    elif projected and index > 0:
+        landing = invoiced / index
+    else:
+        landing = invoiced
+    grouped["landing"] = np.maximum(landing.fillna(invoiced), invoiced + backlog)
+    grouped["budget"] = grouped["sales_bdg"]
+    grouped["ytd_current"] = invoiced
+
+    grouped["sales_score"] = [
+        _ratio_score(l, b) for l, b in zip(grouped["landing"], grouped["budget"])
+    ]
+    grouped["margin_score"] = [
+        _ratio_score(m, mb) for m, mb in zip(grouped["margin_pct"],
+                                             grouped["margin_bdg_pct"])
+    ]
+    grouped["score"] = [
+        blend(s, m, weights)
+        for s, m in zip(grouped["sales_score"], grouped["margin_score"])
+    ]
+    grouped["band"] = grouped["score"].map(band_of)
+    # USD at stake, not the score itself: a $25 budget scoring 10 is noise,
+    # a $365K budget scoring 79 is the meeting.
+    grouped["gap"] = grouped["landing"] - grouped["budget"]
+    grouped["weight"] = grouped["budget"] / grouped["budget"].sum()
+    return grouped.sort_values("gap")
+
+
+def compute(ctx, weights: tuple[float, float] = DEFAULT_WEIGHTS) -> Score:
+    """Score the active filter. Uses both files when available."""
+    cur = MX.totals(ctx.slice_year(ctx.current_year))
+    ytd = float(cur.get("sales") or 0.0)
+    backlog = float(cur.get("sales_open") or 0.0)
+    budget = float(cur.get("sales_bdg") or 0.0)
+    margin = float(cur.get("margin_pct") or np.nan)
+    margin_budget = float(cur.get("margin_bdg_pct") or np.nan)
+
+    index, projected = _seasonality(ctx)
+    landing = ytd / index if projected and index > 0 else ytd
+    # Never project below what is already invoiced plus what is already sold.
+    landing = max(landing, ytd + backlog)
+
+    sales_score = _ratio_score(landing, budget)
+    margin_score = _ratio_score(margin, margin_budget)
+    value = blend(sales_score, margin_score, weights)
+
+    components: dict[str, dict] = {}
+    for key, value_col, budget_col, open_col in (
+        ("sales", "sales", "sales_bdg", "sales_open"),
+        ("profit", "profit", "profit_bdg", "profit_open"),
+        ("quantity", "quantity", "qty_bdg", "qty_open"),
+    ):
+        v = float(cur.get(value_col) or 0.0)
+        b = float(cur.get(budget_col) or 0.0)
+        o = float(cur.get(open_col) or 0.0)
+        land = max(v / index if projected and index > 0 else v, v + o)
+        components[key] = {
+            "ytd": v, "backlog": o, "budget": b, "landing": land,
+            "score": _ratio_score(land, b),
+            "attainment": (v / b) if b else float("nan"),
+        }
+    components["margin"] = {
+        "ytd": margin, "backlog": 0.0, "budget": margin_budget,
+        "landing": margin, "score": margin_score,
+        "attainment": margin / margin_budget if margin_budget else float("nan"),
+    }
+
+    return Score(
+        value=value, sales_score=sales_score, margin_score=margin_score,
+        weights=weights, landing=landing, budget=budget, ytd=ytd, backlog=backlog,
+        margin=margin, margin_budget=margin_budget,
+        projected=projected, index=index, band=band_of(value),
+        components=components,
+        by_group=_group_scores(ctx, index, projected, weights),
+    )
+'''
+
+_MODULES["core.onepager"] = r'''"""Executive one-pager: a self-contained HTML page that prints to one A4 sheet.
+
+No JavaScript, no external assets, no chart library — every bar is hand-written
+SVG. That keeps the file small, makes it render identically in any browser, and
+means Ctrl+P → Save as PDF produces exactly what the screen shows.
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import html
+
+import numpy as np
+import pandas as pd
+
+from core import bridges, metrics as MX, scoring, theme as T
+from core.i18n import t
+
+M = T.money_compact
+
+
+def _e(text) -> str:
+    return html.escape(str(text))
+
+
+def _pct(v, d=0) -> str:
+    return "—" if v is None or (isinstance(v, float) and np.isnan(v)) else f"{v*100:,.{d}f}%"
+
+
+# --------------------------------------------------------------------------- #
+# SVG pieces
+# --------------------------------------------------------------------------- #
+def _split(sales_score: float, margin_score: float,
+           weights: tuple[float, float]) -> str:
+    """The two halves of the hybrid, so the blended number is auditable."""
+    def one(label, value, weight):
+        if value is None or np.isnan(value):
+            return (f'<div class="split"><span>{_e(label)}</span>'
+                    f'<b class="flat">—</b></div>')
+        colour = scoring.BAND_COLOURS[scoring.band_of(value)]
+        return (f'<div class="split"><span>{_e(label)} '
+                f'<i>{weight*100:.0f}%</i></span>'
+                f'<b style="color:{colour}">{value:,.0f}</b></div>')
+    return (one(t("sales"), sales_score, weights[0])
+            + one(t("margin"), margin_score, weights[1]))
+
+
+def _gauge(score: float, colour: str) -> str:
+    """Semicircular gauge, 0–150 sweep so an over-budget score still fits."""
+    if score is None or np.isnan(score):
+        return ""
+    span = 150.0
+    frac = max(0.0, min(1.0, score / span))
+    r, cx, cy = 62, 76, 74
+    start, end = np.pi, np.pi * (1 - frac)
+    x1, y1 = cx + r * np.cos(start), cy + r * np.sin(start) * -1
+    x2, y2 = cx + r * np.cos(end), cy + r * np.sin(end) * -1
+    large = 0          # a semicircle never needs the large-arc flag
+    budget_frac = 100.0 / span
+    bx = cx + r * np.cos(np.pi * (1 - budget_frac))
+    by = cy + r * np.sin(np.pi * (1 - budget_frac)) * -1
+    return f"""
+<svg viewBox="0 0 152 92" class="gauge">
+  <path d="M {cx - r} {cy} A {r} {r} 0 0 1 {cx + r} {cy}" fill="none"
+        stroke="#E6EBF1" stroke-width="13" stroke-linecap="round"/>
+  <path d="M {x1:.1f} {y1:.1f} A {r} {r} 0 {large} 1 {x2:.1f} {y2:.1f}" fill="none"
+        stroke="{colour}" stroke-width="13" stroke-linecap="round"/>
+  <line x1="{bx:.1f}" y1="{by:.1f}" x2="{cx + (r + 9) * np.cos(np.pi * (1 - budget_frac)):.1f}"
+        y2="{cy + (r + 9) * np.sin(np.pi * (1 - budget_frac)) * -1:.1f}"
+        stroke="{T.NAVY}" stroke-width="2"/>
+  <text x="{cx}" y="{cy - 8}" text-anchor="middle" class="gauge-value"
+        fill="{colour}">{score:,.0f}</text>
+  <text x="{cx}" y="{cy + 8}" text-anchor="middle" class="gauge-cap">/ 100 = budget</text>
+</svg>"""
+
+
+def _bar(label: str, invoiced: float, backlog: float, budget: float,
+         pace: float | None, fmt=M) -> str:
+    """Invoiced + backlog against the budget track, with a pace tick."""
+    if not budget or budget <= 0:
+        return ""
+    top = max(1.0, (invoiced + backlog) / budget) * 1.04
+    w = 100.0 / top                      # width of one budget-unit, in %
+    inv_w = max(0.0, invoiced / budget) * w
+    bl_w = max(0.0, backlog / budget) * w
+    tick = (pace * w) if pace and not np.isnan(pace) else None
+    attain = (invoiced + backlog) / budget
+    parts = (f"{_e(fmt(invoiced))} + {_e(fmt(backlog))} / {_e(fmt(budget))}"
+             if backlog else f"{_e(fmt(invoiced))} / {_e(fmt(budget))}")
+    return f"""
+<div class="bar-row">
+  <div class="bar-head"><span>{_e(label)}</span>
+    <span class="bar-num">{parts} · <b>{_pct(attain)}</b></span></div>
+  <div class="bar-track">
+    <div class="bar-budget" style="width:{w:.2f}%"></div>
+    <div class="bar-inv" style="width:{inv_w:.2f}%"></div>
+    <div class="bar-bl" style="left:{inv_w:.2f}%;width:{bl_w:.2f}%"></div>
+    {f'<div class="bar-tick" style="left:{tick:.2f}%"></div>' if tick else ''}
+  </div>
+</div>"""
+
+
+def _movers(rows: pd.DataFrame, label_col: str, value_col: str, positive: bool) -> str:
+    if rows.empty:
+        return '<div class="empty">—</div>'
+    span = float(rows[value_col].abs().max()) or 1.0
+    out = []
+    for _, r in rows.iterrows():
+        v = float(r[value_col])
+        width = abs(v) / span * 100.0
+        colour = T.POSITIVE if positive else T.NEGATIVE
+        out.append(
+            f'<div class="mover"><span class="mover-name">{_e(r[label_col])}</span>'
+            f'<span class="mover-bar"><i style="width:{width:.1f}%;'
+            f'background:{colour}"></i></span>'
+            f'<span class="mover-val" style="color:{colour}">{_e(T.signed(v))}</span></div>'
+        )
+    return "".join(out)
+
+
+def _score_chips(by_group: pd.DataFrame | None, n: int = 8) -> str:
+    """Ranked by dollars at stake, so immaterial accounts never top the list."""
+    if by_group is None or by_group.empty:
+        return '<div class="empty">—</div>'
+    rows = by_group.head(n)
+    out = []
+    for name, r in rows.iterrows():
+        colour = scoring.BAND_COLOURS[r["band"]]
+        out.append(
+            f'<div class="chip-row"><span class="chip-name">{_e(name)}</span>'
+            f'<span class="chip" style="background:{colour}">{r["score"]:,.0f}</span>'
+            f'<span class="chip-gap">{_e(T.signed(r["gap"]))}</span></div>'
+        )
+    return "".join(out)
+
+
+# --------------------------------------------------------------------------- #
+# Page
+# --------------------------------------------------------------------------- #
+CSS = """
+@page { size: A4 landscape; margin: 8mm; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif;
+       color:#1B2530; background:#fff; font-size:10.5px; }
+.sheet { width:281mm; min-height:194mm; margin:0 auto; padding:0; }
+header { display:flex; align-items:center; gap:14px; border-bottom:2px solid #002856;
+         padding-bottom:7px; margin-bottom:9px; }
+header img { height:26px; }
+h1 { font-size:15px; margin:0; color:#002856; letter-spacing:-.2px; }
+.sub { color:#6B7A88; font-size:9px; margin-top:1px; }
+.spacer { flex:1; }
+.stamp { text-align:right; color:#6B7A88; font-size:8.5px; }
+.grid { display:grid; grid-template-columns: 200px 1fr; gap:10px; }
+.card { border:1px solid #DDE3EA; border-radius:6px; padding:8px 10px; background:#fff; }
+.card h2 { font-size:9px; text-transform:uppercase; letter-spacing:.07em;
+           color:#6B7A88; margin:0 0 6px 0; font-weight:600; }
+.score-card { text-align:center; }
+.gauge { width:100%; height:auto; }
+.gauge-value { font-size:28px; font-weight:700; }
+.gauge-cap { font-size:7px; fill:#6B7A88; }
+.band { font-size:11px; font-weight:700; margin-top:2px; }
+.score-note { color:#6B7A88; font-size:8px; margin-top:4px; line-height:1.35; }
+.splits { display:flex; gap:6px; margin-top:6px; }
+.split { flex:1; border:1px solid #DDE3EA; border-radius:5px; padding:3px 5px;
+         display:flex; flex-direction:column; align-items:center; }
+.split span { color:#6B7A88; font-size:7.5px; }
+.split span i { font-style:normal; color:#A6B2BE; }
+.split b { font-size:13px; line-height:1.2; }
+.kpis { display:grid; grid-template-columns: repeat(5, 1fr); gap:7px; margin-bottom:9px; }
+.kpi { border:1px solid #DDE3EA; border-radius:6px; padding:6px 8px; }
+.kpi .l { color:#6B7A88; font-size:7.5px; text-transform:uppercase; letter-spacing:.06em; }
+.kpi .v { color:#002856; font-size:17px; font-weight:650; line-height:1.15; }
+.kpi .d { font-size:8px; margin-top:1px; }
+.up { color:#1F7A5A; } .down { color:#B03A2E; } .flat { color:#6B7A88; }
+.bar-row { margin-bottom:7px; }
+.bar-head { display:flex; justify-content:space-between; font-size:9.5px;
+            margin-bottom:2px; }
+.bar-head span:first-child { font-weight:600; color:#002856; }
+.bar-num { color:#6B7A88; }
+.bar-track { position:relative; height:15px; background:#F2F5F8; border-radius:3px; }
+.bar-budget { position:absolute; height:100%; background:#E6EBF1; border-radius:3px; }
+.bar-inv { position:absolute; height:100%; background:#002856; border-radius:3px 0 0 3px; }
+.bar-bl { position:absolute; height:100%; background:repeating-linear-gradient(
+            45deg, #2E7EB3, #2E7EB3 3px, #ffffff 3px, #ffffff 6px); }
+.bar-tick { position:absolute; top:-3px; height:21px; width:2px; background:#002856; }
+.cols { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:9px; }
+.mover { display:flex; align-items:center; gap:6px; margin-bottom:4.5px; font-size:9.5px; }
+.mover-name { width:118px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mover-bar { flex:1; height:7px; background:#F2F5F8; border-radius:2px; }
+.mover-bar i { display:block; height:100%; border-radius:2px; }
+.mover-val { width:58px; text-align:right; font-variant-numeric:tabular-nums; }
+.chip-row { display:flex; align-items:center; gap:6px; margin-bottom:4.5px; font-size:9.5px; }
+.chip-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chip { color:#fff; font-weight:700; border-radius:9px; padding:1px 6px; font-size:8px; }
+.chip-gap { width:58px; text-align:right; color:#6B7A88;
+            font-variant-numeric:tabular-nums; }
+ul.bullets { margin:0; padding-left:13px; }
+ul.bullets li { margin-bottom:5px; line-height:1.45; font-size:9.5px; }
+.legend { display:flex; gap:12px; font-size:8px; color:#6B7A88; margin-top:5px; }
+.legend i { display:inline-block; width:9px; height:9px; border-radius:2px;
+            margin-right:3px; vertical-align:-1px; }
+footer { margin-top:9px; border-top:1px solid #DDE3EA; padding-top:5px;
+         color:#8896A4; font-size:7.5px; line-height:1.45; }
+.empty { color:#8896A4; font-size:8.5px; }
+@media print { .sheet { page-break-after: avoid; } }
+"""
+
+
+def build(ctx, bullets: dict[str, list[str]] | None = None) -> str:
+    """Render the one-pager for the current filter. Returns an HTML string."""
+    score = scoring.compute(ctx)
+    cur = MX.totals(ctx.slice_year(ctx.current_year))
+    base = MX.totals(ctx.slice_year(ctx.base_year))
+
+    pace = score.index if score.projected else None
+    level = ctx.group_level
+    cmp_df = ctx.compare(level)
+
+    # --- KPI strip ---
+    def kpi(label, value, deltas):
+        rows = "".join(
+            f'<div class="d {cls}">{_e(txt)}</div>' for txt, cls in deltas)
+        return (f'<div class="kpi"><div class="l">{_e(label)}</div>'
+                f'<div class="v">{_e(value)}</div>{rows}</div>')
+
+    def delta(cur_v, base_v, fmt=M, pp=False):
+        if base_v in (None, 0) or (isinstance(base_v, float) and np.isnan(base_v)):
+            return ("—", "flat")
+        d = cur_v - base_v
+        cls = "up" if d >= 0 else "down"
+        if pp:
+            return (f"{d*100:+.1f} pp vs {ctx.base_year}", cls)
+        rel = d / abs(base_v)
+        return (f"{T.signed(d, fmt)} ({rel*100:+.1f}%) vs {ctx.base_year}", cls)
+
+    kpis = "".join([
+        kpi(t("sales"), M(cur.get("sales")), [delta(cur.get("sales"), base.get("sales"))]),
+        kpi(t("profit"), M(cur.get("profit")), [delta(cur.get("profit"), base.get("profit"))]),
+        kpi(t("margin"), _pct(cur.get("margin_pct"), 1),
+            [delta(cur.get("margin_pct"), base.get("margin_pct"), pp=True)]),
+        kpi(t("volume"), T.qty(cur.get("quantity"), ctx.unit),
+            [delta(cur.get("quantity"), base.get("quantity"),
+                   fmt=lambda v: T.qty(v, ctx.unit))]),
+        kpi(t("open_orders"), M(cur.get("sales_open")),
+            [(f'{t("landing")}: {M(score.landing)}', "flat")]),
+    ])
+
+    # --- bars ---
+    c = score.components
+    bars = "".join([
+        _bar(t("sales"), c["sales"]["ytd"], c["sales"]["backlog"],
+             c["sales"]["budget"], pace),
+        _bar(t("profit"), c["profit"]["ytd"], c["profit"]["backlog"],
+             c["profit"]["budget"], pace),
+        _bar(t("volume"), c["quantity"]["ytd"], c["quantity"]["backlog"],
+             c["quantity"]["budget"], pace, fmt=lambda v: T.qty(v, ctx.unit)),
+        _bar(t("margin"), c["margin"]["ytd"], 0.0, c["margin"]["budget"], None,
+             fmt=lambda v: _pct(v, 1)),
+    ])
+
+    # --- movers ---
+    movers = cmp_df.reindex(
+        cmp_df["sales_delta"].abs().sort_values(ascending=False).index)
+    ups = movers[movers["sales_delta"] > 0].head(8)
+    downs = movers[movers["sales_delta"] < 0].head(8)
+
+    # --- bridge one-liner ---
+    sb = bridges.sales_bridge(ctx.tidy, ctx.current_year, ctx.base_year)
+    vol_e, price_e = sb["steps"].get("volume", 0.0), sb["steps"].get("price", 0.0)
+
+    # --- bullets ---
+    items: list[str] = []
+    for key in ("diagnostico", "riesgos", "acciones"):
+        for b in (bullets or {}).get(key, [])[:2]:
+            items.append(b)
+    bullet_html = "".join(f"<li>{_md(b)}</li>" for b in items[:6]) or "<li>—</li>"
+
+    band_label = {
+        "on_budget": t("sc_band_on"), "close": t("sc_band_close"),
+        "at_risk": t("sc_band_risk"), "critical": t("sc_band_critical"),
+    }[score.band]
+
+    logo = T.logo_data_uri()
+    stamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+    scope = ", ".join(ctx.selected_groups) if ctx.selected_groups else t("sc_all_portfolio")
+
+    drag_txt = {
+        "sales": t("sc_drag_sales"), "margin": t("sc_drag_margin"),
+        "both": t("sc_drag_both"), "none": "",
+    }[score.drag]
+    surplus_txt = (t("sc_surplus", v=M(abs(score.surplus)))
+                   if score.surplus >= 0 else t("sc_shortfall", v=M(abs(score.surplus))))
+    method = (t("sc_method_projected", index=_pct(score.index))
+              if score.projected else t("sc_method_raw"))
+
+    return f"""<!doctype html>
+<html lang="{'es' if ctx.lang == 'es' else 'en'}">
+<head><meta charset="utf-8"><title>{_e(t('op_title'))} · {ctx.current_year}</title>
+<style>{CSS}</style></head>
+<body><div class="sheet">
+<header>
+  {f'<img src="{logo}" alt="Robertet"/>' if logo else ''}
+  <div><h1>{_e(t('op_title'))} · {ctx.current_year} vs {ctx.base_year}</h1>
+    <div class="sub">{_e(scope)} · {_e(ctx.label_for(level))}</div></div>
+  <div class="spacer"></div>
+  <div class="stamp">{_e(t('op_generated'))} {stamp}<br/>{_e(t('op_confidential'))}</div>
+</header>
+
+<div class="grid">
+  <div class="card score-card">
+    <h2>{_e(t('sc_title'))}</h2>
+    {_gauge(score.value, score.colour)}
+    <div class="band" style="color:{score.colour}">{_e(band_label)}</div>
+    <div class="splits">{_split(score.sales_score, score.margin_score, score.weights)}</div>
+    <div class="score-note">{_e(drag_txt)}<br/>{_e(surplus_txt)}<br/>{_e(method)}</div>
+  </div>
+  <div>
+    <div class="kpis">{kpis}</div>
+    <div class="card">
+      <h2>{_e(t('op_vs_budget'))}</h2>
+      {bars}
+      <div class="legend">
+        <span><i style="background:#002856"></i>{_e(t('invoiced'))}</span>
+        <span><i style="background:repeating-linear-gradient(45deg,#2E7EB3,#2E7EB3 3px,#fff 3px,#fff 6px)"></i>{_e(t('open_orders'))}</span>
+        <span><i style="background:#E6EBF1"></i>{_e(t('budget'))}</span>
+        {f'<span><i style="background:#002856;width:2px"></i>{_e(t("ov_pace_sub"))}</span>' if pace else ''}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card"><h2>{_e(t('op_up'))}</h2>{_movers(ups, level, 'sales_delta', True)}</div>
+  <div class="card"><h2>{_e(t('op_down'))}</h2>{_movers(downs, level, 'sales_delta', False)}</div>
+  <div class="card"><h2>{_e(t('op_worst_scores'))}</h2>{_score_chips(score.material())}</div>
+</div>
+
+<div class="cols" style="grid-template-columns: 1fr 1fr;">
+  <div class="card"><h2>{_e(t('op_why'))}</h2>
+    <ul class="bullets">
+      <li>{_e(t('op_bridge', volume=T.signed(vol_e), price=T.signed(price_e)))}</li>
+      <li>{_e(t('op_backlog_line', open=M(score.backlog),
+                land=M(score.landing), bdg=M(score.budget)))}</li>
+    </ul>
+  </div>
+  <div class="card"><h2>{_e(t('op_actions'))}</h2>
+    <ul class="bullets">{bullet_html}</ul></div>
+</div>
+
+<footer>{_e(t('op_footer', ytd=ctx.ytd.filename if ctx.ytd else '—',
+                fy=ctx.fy.filename if ctx.fy else '—'))}</footer>
+</div></body></html>"""
+
+
+def _md(text: str) -> str:
+    """Minimal **bold** support inside bullets, everything else escaped."""
+    safe = html.escape(str(text))
+    parts = safe.split("**")
+    return "".join(p if i % 2 == 0 else f"<b>{p}</b>" for i, p in enumerate(parts))
+'''
+
 _MODULES["core.session"] = r'''"""Ephemeral session state.
 
 Design rule, non-negotiable: nothing this module holds ever reaches disk.
@@ -4199,6 +4862,143 @@ def render(ctx) -> None:
                            f"estrategia_{ctx.current_year}.xlsx", key="dl_strategy_xlsx")
 '''
 
+_MODULES["views.onepager"] = r'''"""Tab — Executive score and one-page export."""
+
+from __future__ import annotations
+
+import datetime as dt
+
+import numpy as np
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
+
+from core import bridges, charts, insights, metrics as MX, onepager, scoring, theme as T, ui
+from core.forecast import landing_forecast, portfolio_pace
+from core.i18n import t
+
+
+def _band_label(band: str) -> str:
+    return {"on_budget": t("sc_band_on"), "close": t("sc_band_close"),
+            "at_risk": t("sc_band_risk"), "critical": t("sc_band_critical")}[band]
+
+
+def _bullets(ctx) -> dict[str, list[str]]:
+    level = ctx.group_level if ctx.group_level in ("enterprise", "customer") else "enterprise"
+    cmp_cust = ctx.compare(level)
+    cmp_prod = ctx.compare("product_family")
+    if cmp_cust.empty:
+        return {}
+    sb = bridges.sales_bridge(ctx.tidy, ctx.current_year, ctx.base_year)
+    mb = bridges.margin_bridge(ctx.tidy, ctx.current_year, ctx.base_year)
+    pace = forecast = None
+    if ctx.has_both:
+        try:
+            prior = ctx.current_year - 1
+            pace = portfolio_pace(ctx.ytd.tidy, ctx.fy.tidy, ctx.current_year, prior)
+            forecast = landing_forecast(ctx.ytd.tidy, ctx.fy.tidy,
+                                        ctx.current_year, prior, "enterprise")
+        except Exception:
+            pace = forecast = None
+    return insights.build_all(cmp_cust, cmp_prod, sb, mb, pace, forecast, level)
+
+
+def render(ctx) -> None:
+    st.markdown(f"### {t('op_tab_title')}")
+    ui.note(t("op_note"))
+
+    c1, c2, _ = st.columns([1, 1, 2])
+    w_sales = c1.slider(t("sc_weight_sales"), 0, 100,
+                        int(scoring.DEFAULT_WEIGHTS[0] * 100), step=5,
+                        key="sc_w", help=t("sc_weight_help"))
+    weights = (w_sales / 100.0, 1 - w_sales / 100.0)
+    c2.metric(t("sc_weight_margin"), f"{100 - w_sales}%")
+
+    score = scoring.compute(ctx, weights)
+    if np.isnan(score.value):
+        st.info(t("sc_no_budget"))
+        return
+
+    # --- headline ------------------------------------------------------------
+    k1, k2, k3, k4 = st.columns(4)
+    k1.markdown(ui.kpi_card(
+        t("sc_title"), f"{score.value:,.0f}",
+        [(_band_label(score.band), score.value - 100, True)]), unsafe_allow_html=True)
+    k2.markdown(ui.kpi_card(
+        t("sc_sales_score"), f"{score.sales_score:,.0f}"
+        if not np.isnan(score.sales_score) else "—",
+        [(t("sc_landing_vs", land=T.money_compact(score.landing),
+            bdg=T.money_compact(score.budget)),
+          score.sales_score - 100 if not np.isnan(score.sales_score) else None, True)]),
+        unsafe_allow_html=True)
+    k3.markdown(ui.kpi_card(
+        t("sc_margin_score"), f"{score.margin_score:,.0f}"
+        if not np.isnan(score.margin_score) else "—",
+        [(t("sc_margin_vs", cur=T.pct(score.margin, 1),
+            bdg=T.pct(score.margin_budget, 1)),
+          score.margin_score - 100 if not np.isnan(score.margin_score) else None, True)]),
+        unsafe_allow_html=True)
+    k4.markdown(ui.kpi_card(
+        t("landing"), T.money_compact(score.landing),
+        [(t("sc_surplus", v=T.money_compact(abs(score.surplus))) if score.surplus >= 0
+          else t("sc_shortfall", v=T.money_compact(abs(score.surplus))),
+          score.surplus, True)]), unsafe_allow_html=True)
+
+    drag = {"sales": t("sc_drag_sales"), "margin": t("sc_drag_margin"),
+            "both": t("sc_drag_both"), "none": ""}[score.drag]
+    method = (t("sc_method_projected", index=T.pct(score.index, 0))
+              if score.projected else t("sc_method_raw"))
+    ui.note(f"{drag} {method}")
+
+    # --- score distribution --------------------------------------------------
+    material = score.material()
+    if material is not None and not material.empty:
+        frame = material.reset_index()
+        level_col = frame.columns[0]
+        st.plotly_chart(
+            charts.diverging_bars(
+                frame.assign(delta=frame["score"] - 100), level_col, "delta",
+                t("sc_chart", level=ctx.label_for("enterprise").lower()),
+                top_n=ctx.top_n),
+            width="stretch", key="op_scores")
+        ui.note(t("sc_chart_note") + " " + t("sc_material_note"))
+
+        table = frame[[level_col, "score", "sales_score", "margin_score",
+                       "ytd_current", "landing", "budget", "gap",
+                       "margin_pct", "margin_bdg_pct"]].copy()
+        table.columns = [ctx.label_for("enterprise"), t("sc_title"),
+                         t("sc_sales_score"), t("sc_margin_score"),
+                         f"YTD {ctx.current_year}", t("landing"), t("budget"),
+                         f'Δ {t("budget")}', t("margin"),
+                         f'{t("margin")} {t("budget")}']
+        st.dataframe(
+            ui.style_table(
+                table,
+                money_cols=[f"YTD {ctx.current_year}", t("landing"), t("budget"),
+                            f'Δ {t("budget")}'],
+                pct_cols=[t("margin"), f'{t("margin")} {t("budget")}'],
+                highlight=[t("sc_title"), f'Δ {t("budget")}']),
+            width="stretch", height=340)
+
+    st.divider()
+
+    # --- one-pager -----------------------------------------------------------
+    st.markdown(f"#### {t('op_export')}")
+    html_doc = onepager.build(ctx, _bullets(ctx))
+    stamp = dt.datetime.now().strftime("%Y%m%d")
+    scope = "portafolio" if not ctx.selected_groups else "filtro"
+
+    d1, d2 = st.columns([1, 3])
+    d1.download_button(
+        t("op_download"), data=html_doc.encode("utf-8"),
+        file_name=f"onepager_{scope}_{ctx.current_year}_{stamp}.html",
+        mime="text/html", key="dl_onepager", type="primary")
+    d2.caption(t("op_print_hint"))
+
+    with st.expander(t("op_preview"), expanded=True):
+        components.html(html_doc, height=780, scrolling=True)
+'''
+
 _MODULES["views.dataquality"] = r'''"""Tab 7 — Data & quality: what was parsed, what was pruned, what does not reconcile."""
 
 from __future__ import annotations
@@ -4358,7 +5158,7 @@ from core.context import build_sidebar        # noqa: E402
 from core.i18n import t                       # noqa: E402
 from core.parser import parse_export          # noqa: E402
 from views import (backlog, customer, dataquality, deviations,   # noqa: E402
-                   dimension, fullyear, overview, strategy)
+                   dimension, fullyear, onepager, overview, strategy)
 
 
 st.set_page_config(
@@ -4507,6 +5307,7 @@ def main() -> None:
         f"🧪 {t('tab_products')}",
         f"🎯 {t('tab_deviations')}",
         f"💡 {t('tab_strategy')}",
+        f"📄 {t('tab_onepager')}",
         f"🔧 {t('tab_data')}",
     ])
     with tabs[0]:
@@ -4526,6 +5327,8 @@ def main() -> None:
     with tabs[7]:
         strategy.render(ctx)
     with tabs[8]:
+        onepager.render(ctx)
+    with tabs[9]:
         dataquality.render(ctx)
 
 
