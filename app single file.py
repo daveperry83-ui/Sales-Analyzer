@@ -15,10 +15,42 @@ import types
 
 import streamlit as st
 
+# --------------------------------------------------------------------------- #
+# Dependency preflight: a missing package here would otherwise surface as a
+# redacted ModuleNotFoundError pointing at a line inside a bundled module.
+# --------------------------------------------------------------------------- #
+_REQUIRED = {
+    "pandas": "pandas>=2.2",
+    "numpy": "numpy>=1.26",
+    "plotly": "plotly>=5.24",
+    "openpyxl": "openpyxl>=3.1",
+}
+
+_missing = []
+for _mod, _spec in _REQUIRED.items():
+    try:
+        __import__(_mod)
+    except ImportError:
+        _missing.append((_mod, _spec))
+
+if _missing:
+    _names = ", ".join(f"`{m}`" for m, _ in _missing)
+    _lines = "\n".join(spec for _, spec in _missing)
+    st.error(
+        f"**Faltan dependencias: {_names}.**\n\n"
+        "El repositorio necesita un archivo `requirements.txt` junto a este "
+        "archivo .py, con este contenido:\n\n"
+        "```\nstreamlit>=1.60\npandas>=2.2\nnumpy>=1.26\nplotly>=5.24\n"
+        "openpyxl>=3.1\n```\n\n"
+        "Súbelo al repositorio y en Streamlit Cloud usa **Manage app → Reboot** "
+        "para que reinstale.",
+        icon="📦",
+    )
+    st.stop()
+
 _MODULES: dict[str, str] = {}
 
-_MODULES["core.theme"] = r'''
-"""Robertet visual identity: navy #002856, plus a data palette built around it."""
+_MODULES["core.theme"] = r'''"""Robertet visual identity: navy #002856, plus a data palette built around it."""
 
 from __future__ import annotations
 
@@ -183,11 +215,9 @@ FORMATTERS = {
     "unit": unit_value,
     "int": lambda v: "—" if v is None or v != v else f"{v:,.0f}",
 }
-
 '''
 
-_MODULES["core.i18n"] = r'''
-"""Bilingual strings for the whole app — labels, chart titles and prose.
+_MODULES["core.i18n"] = r'''"""Bilingual strings for the whole app — labels, chart titles and prose.
 
 `t("key", value=…)` returns the string for the active language and applies
 `str.format` with whatever keyword arguments are passed, so sentences that embed
@@ -674,11 +704,9 @@ def metric_label(key: str) -> str:
 
 def set_language(lang: str) -> None:
     st.session_state["lang"] = lang
-
 '''
 
-_MODULES["core.schema"] = r'''
-"""Canonical mapping of the BI export into the app's internal vocabulary.
+_MODULES["core.schema"] = r'''"""Canonical mapping of the BI export into the app's internal vocabulary.
 
 The real files vary: column captions get renamed, translated, reordered, or
 shipped with a single header row instead of two. Everything here is therefore
@@ -874,11 +902,9 @@ def match_metric(caption: object) -> str | None:
 
 def is_subtotal(value: object) -> bool:
     return normalise(value) in SUBTOTAL_TOKENS
-
 '''
 
-_MODULES["core.metrics"] = r'''
-"""Safe aggregation. The single rule: ratios are never averaged."""
+_MODULES["core.metrics"] = r'''"""Safe aggregation. The single rule: ratios are never averaged."""
 
 from __future__ import annotations
 
@@ -1010,11 +1036,9 @@ def herfindahl(values: pd.Series) -> float:
         return float("nan")
     shares = v / total
     return float((shares**2).sum())
-
 '''
 
-_MODULES["core.parser"] = r'''
-"""Parse a BI sales export into a tidy, leaf-level dataframe — tolerantly.
+_MODULES["core.parser"] = r'''"""Parse a BI sales export into a tidy, leaf-level dataframe — tolerantly.
 
 The reference file is a hierarchical pivot with a two-row header (year band on
 top, metric caption below), eight dimension columns and embedded subtotal rows.
@@ -1457,11 +1481,9 @@ def parse_export(data: bytes, filename: str = "") -> ParsedExport:
             + ", ".join(str(y) for y in parsed.partial_years)
         )
     return parsed
-
 '''
 
-_MODULES["core.bridges"] = r'''
-"""Exact price / volume / mix and margin decompositions.
+_MODULES["core.bridges"] = r'''"""Exact price / volume / mix and margin decompositions.
 
 At item level the sales bridge is algebraically exact:
 
@@ -1627,11 +1649,9 @@ def contribution_by_group(
             ignore_index=True,
         )
     return top.sort_values("delta")
-
 '''
 
-_MODULES["core.forecast"] = r'''
-"""Seasonality, landing forecast, and the cross-file basis guard.
+_MODULES["core.forecast"] = r'''"""Seasonality, landing forecast, and the cross-file basis guard.
 
 The two exports are NOT on the same date basis. Evidence found in the real
 files: the budget reconciles to the cent per customer, but 39 of 142 customers
@@ -1817,11 +1837,9 @@ def multi_year_trend(fy_tidy: pd.DataFrame, years: list[int], level: str | None 
     agg["margin_pct"] = np.where(agg["sales"] != 0, agg["profit"] / agg["sales"], np.nan)
     agg["price"] = np.where(agg["quantity"] != 0, agg["sales"] / agg["quantity"], np.nan)
     return agg
-
 '''
 
-_MODULES["core.charts"] = r'''
-"""Reusable Plotly builders. One visual language across every tab."""
+_MODULES["core.charts"] = r'''"""Reusable Plotly builders. One visual language across every tab."""
 
 from __future__ import annotations
 
@@ -2217,11 +2235,9 @@ def heatmap(pivot: pd.DataFrame, title: str, fmt: str = ".0%") -> go.Figure:
     fig.update_layout(title=title, height=max(320, 22 * len(pivot) + 130),
                       xaxis=dict(type="category"), yaxis=dict(automargin=True))
     return fig
-
 '''
 
-_MODULES["core.ui"] = r'''
-"""Small shared UI pieces: KPI cards, table styling, in-memory Excel export."""
+_MODULES["core.ui"] = r'''"""Small shared UI pieces: KPI cards, table styling, in-memory Excel export."""
 
 from __future__ import annotations
 
@@ -2389,11 +2405,9 @@ def note(text: str) -> None:
 
 def chip(text: str, kind: str = "ok") -> str:
     return f'<span class="rb-chip rb-chip-{kind}">{text}</span>'
-
 '''
 
-_MODULES["core.insights"] = r'''
-"""Rule engine: turns the filtered numbers into quantified, actionable bullets.
+_MODULES["core.insights"] = r'''"""Rule engine: turns the filtered numbers into quantified, actionable bullets.
 
 Every bullet carries a USD figure. Nothing generic, nothing that could have been
 written before seeing the data. Sentences live in `core.i18n` as templates so
@@ -2614,11 +2628,9 @@ def build_all(cmp_cust: pd.DataFrame, cmp_prod: pd.DataFrame, sales_br: dict,
         "oportunidades": opportunities(cmp_cust, cmp_prod, cust_label),
         "acciones": actions(cmp_cust, forecast, sales_br, margin_br, cust_label),
     }
-
 '''
 
-_MODULES["core.session"] = r'''
-"""Ephemeral session state.
+_MODULES["core.session"] = r'''"""Ephemeral session state.
 
 Design rule, non-negotiable: nothing this module holds ever reaches disk.
 Uploads are consumed as bytes from memory, parsed into dataframes held only in
@@ -2706,11 +2718,9 @@ def clear_all(keep_preferences: bool = False) -> None:
         pass
     gc.collect()
     touch()
-
 '''
 
-_MODULES["core.context"] = r'''
-"""Sidebar state + the filtered slice every view reads from."""
+_MODULES["core.context"] = r'''"""Sidebar state + the filtered slice every view reads from."""
 
 from __future__ import annotations
 
@@ -2906,11 +2916,9 @@ def build_sidebar(ytd, fy) -> Context:
         active_metrics=active, lang=st.session_state.get("lang", "es"),
         selected_groups=sel_groups, selected_accounts=sel_accounts,
     )
-
 '''
 
-_MODULES["views.overview"] = r'''
-"""Tab 1 — Executive overview: KPIs, budget progress, bridges, landing."""
+_MODULES["views.overview"] = r'''"""Tab 1 — Executive overview: KPIs, budget progress, bridges, landing."""
 
 from __future__ import annotations
 
@@ -3045,11 +3053,9 @@ def render(ctx) -> None:
                 top_n=ctx.top_n,
             ),
             width="stretch", key="overview_7")
-
 '''
 
-_MODULES["views.customer"] = r'''
-"""Tab — Client sheet: one customer group, everything about it on one screen.
+_MODULES["views.customer"] = r'''"""Tab — Client sheet: one customer group, everything about it on one screen.
 
 Picks a single client group (the level the budget is loaded at, and the level
 that keeps a client trading under two account codes together) and answers, in
@@ -3331,11 +3337,9 @@ def _alerts(ctx, item: pd.DataFrame, prod: pd.DataFrame, cur, base,
         if landing["gap_vs_budget"] < 0:
             out.append(t("cl_alert_gap", total=M(abs(landing["gap_vs_budget"]))))
     return out
-
 '''
 
-_MODULES["views.backlog"] = r'''
-"""Tab 2 — Open orders: business already booked but not yet invoiced.
+_MODULES["views.backlog"] = r'''"""Tab 2 — Open orders: business already booked but not yet invoiced.
 
 The point of this tab is the *impact* of the backlog, not its size: how much of
 the budget gap it closes, which accounts it belongs to, and where it flips a
@@ -3490,11 +3494,9 @@ def render(ctx) -> None:
     )
     ui.download_button(t("download_table"), {"Backlog": table},
                        f"cartera_{ctx.current_year}.xlsx", key="dl_backlog")
-
 '''
 
-_MODULES["views.fullyear"] = r'''
-"""Tab 2 — YTD vs Full Year: seasonality, landing forecast, multi-year trend.
+_MODULES["views.fullyear"] = r'''"""Tab 2 — YTD vs Full Year: seasonality, landing forecast, multi-year trend.
 
 This is the tab that needs both files, and the one where the basis mismatch
 between them has to be stated out loud rather than buried.
@@ -3654,11 +3656,9 @@ def render(ctx) -> None:
             width="stretch", height=360,
         )
         st.caption(t("fy_diag_caption"))
-
 '''
 
-_MODULES["views.dimension"] = r'''
-"""Tabs 3 & 4 — Customer and Product analysis. One engine, two entry points."""
+_MODULES["views.dimension"] = r'''"""Tabs 3 & 4 — Customer and Product analysis. One engine, two entry points."""
 
 from __future__ import annotations
 
@@ -3836,11 +3836,9 @@ def render(ctx, mode: str = "customer") -> None:
 
     st.markdown(f"#### {t('dim_detail')}")
     _render_table(ctx, df, level, key=mode)
-
 '''
 
-_MODULES["views.deviations"] = r'''
-"""Tab 5 — Deviation radar: everything off track, ranked by USD, not by percent."""
+_MODULES["views.deviations"] = r'''"""Tab 5 — Deviation radar: everything off track, ranked by USD, not by percent."""
 
 from __future__ import annotations
 
@@ -3979,11 +3977,9 @@ def render(ctx) -> None:
     )
     ui.download_button(t("download_table"), {"Deviations": table},
                        f"desviaciones_{ctx.current_year}.xlsx", key="dl_dev")
-
 '''
 
-_MODULES["views.strategy"] = r'''
-"""Tab 6 — Strategy bullets and next steps, generated from the filtered numbers."""
+_MODULES["views.strategy"] = r'''"""Tab 6 — Strategy bullets and next steps, generated from the filtered numbers."""
 
 from __future__ import annotations
 
@@ -4083,11 +4079,9 @@ def render(ctx) -> None:
     with c2:
         ui.download_button(t("st_dl_xlsx"), {"Strategy": flat},
                            f"estrategia_{ctx.current_year}.xlsx", key="dl_strategy_xlsx")
-
 '''
 
-_MODULES["views.dataquality"] = r'''
-"""Tab 7 — Data & quality: what was parsed, what was pruned, what does not reconcile."""
+_MODULES["views.dataquality"] = r'''"""Tab 7 — Data & quality: what was parsed, what was pruned, what does not reconcile."""
 
 from __future__ import annotations
 
@@ -4215,7 +4209,6 @@ def render(ctx) -> None:
         )
         ui.download_button(t("download_table"), {"Reconciliation": d},
                            f"conciliacion_{prior}.xlsx", key="dl_recon")
-
 '''
 
 
