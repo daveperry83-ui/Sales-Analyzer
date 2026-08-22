@@ -1001,6 +1001,406 @@ _PT_FR = {
 
 for _k, _tr in _PT_FR.items():
     STRINGS.setdefault(_k, {}).update(_tr)
+
+# Full Portuguese/French coverage so no view mixes languages.
+try:
+    from core.i18n_ptfr import merge_into as _merge_ptfr
+    _merge_ptfr(STRINGS)
+except Exception:
+    pass
+'''
+
+_MODULES["core.i18n_ptfr"] = r'''"""Complete Portuguese and French translations, merged into i18n.STRINGS.
+
+Kept identical across languages on purpose (business terms the user uses as-is):
+budget, YTD, Full Year, one-pager, pace, Δ. Product and customer names are DATA,
+never translated. This module fills every remaining UI string so no view mixes
+languages.
+"""
+
+# © 2026 [Titular de derechos]. Todos los derechos reservados. / All rights reserved.
+# Robertet LATAM Sales Analytics — software propietario. Ver LICENSE.
+
+TRANSLATIONS = {
+    # ---- evolution ----
+    "ev_note": {"pt": "Compara o YTD deste mês com o YTD do mês passado. A diferença é o movimento do mês; o arquivo traz também o ano anterior, então cada mês é avaliado contra o mês anterior e contra o mesmo mês do ano passado.",
+                "fr": "Compare le YTD de ce mois au YTD du mois dernier. La différence est le mouvement du mois ; le fichier contient aussi l'année précédente, donc chaque mois est jugé face au mois précédent et au même mois l'an dernier."},
+    "ev_need_prev": {"pt": "Carregue o arquivo do mês passado em «Mês anterior (YTD)» no painel lateral para habilitar esta vista.",
+                     "fr": "Chargez le fichier du mois dernier dans « Mois précédent (YTD) » dans le panneau latéral pour activer cette vue."},
+    "ev_how": {"pt": "Como obter o arquivo do mês passado?", "fr": "Comment obtenir le fichier du mois dernier ?"},
+    "ev_how_body": {"pt": "A cada fechamento, **salve** o export YTD que você baixa. No mês seguinte, carregue o novo em «Arquivo YTD» e o anterior em «Mês anterior». Com dois fechamentos já funciona. O app não guarda histórico, então o arquivamento depende de você.",
+                    "fr": "À chaque clôture, **enregistrez** l'export YTD que vous téléchargez. Le mois suivant, chargez le nouveau dans « Fichier YTD » et le précédent dans « Mois précédent ». Deux clôtures suffisent. L'app ne garde aucun historique, l'archivage dépend donc de vous."},
+    "ev_err_year": {"pt": "O arquivo do mês passado não contém o ano {year}. Você carregou o arquivo correto?",
+                    "fr": "Le fichier du mois dernier ne contient pas l'année {year}. Avez-vous chargé le bon fichier ?"},
+    "ev_err_swapped": {"pt": "O arquivo do «mês passado» ({prev}) tem mais vendas que o de «este mês» ({now}). Parece que foram carregados invertidos: o mais recente vai em «Arquivo YTD».",
+                       "fr": "Le fichier « mois dernier » ({prev}) a plus de ventes que celui de « ce mois » ({now}). Ils semblent inversés : le plus récent va dans « Fichier YTD »."},
+    "ev_err_same": {"pt": "Os dois arquivos têm o mesmo total: parecem ser o mesmo fechamento. Carregue dois meses distintos.",
+                    "fr": "Les deux fichiers ont le même total : ils semblent être la même clôture. Chargez deux mois différents."},
+    "ev_vs_year_ago": {"pt": "{v} vs mesmo mês do ano passado", "fr": "{v} vs même mois l'an dernier"},
+    "ev_month_profit": {"pt": "profit do mês {v}", "fr": "profit du mois {v}"},
+    "ev_landing_move": {"pt": "Aterrissagem projetada", "fr": "Atterrissage projeté"},
+    "ev_landing_delta": {"pt": "{v} vs o mês passado", "fr": "{v} vs le mois dernier"},
+    "ev_drv_sales": {"pt": "Pontuação de vendas {v}", "fr": "Score de ventes {v}"},
+    "ev_drv_margin": {"pt": "Pontuação de margem {v}", "fr": "Score de marge {v}"},
+    "ev_movers": {"pt": "Quem acelerou e quem freou (vendas do mês)", "fr": "Qui a accéléré et qui a ralenti (ventes du mois)"},
+    "ev_accelerating": {"pt": "Contribuíram este mês", "fr": "Ont contribué ce mois"},
+    "ev_slowing": {"pt": "Subtraíram este mês", "fr": "Ont réduit ce mois"},
+    "ev_month_year_ago": {"pt": "Mesmo mês ano passado", "fr": "Même mois l'an dernier"},
+    "ev_month_this": {"pt": "Este mês", "fr": "Ce mois"},
+    "ev_vs_year_chart": {"pt": "Vendas do mês: este ano vs ano passado", "fr": "Ventes du mois : cette année vs l'an dernier"},
+    "ev_yoy_note": {"pt": "O mês contribuiu {now} contra {py} do mesmo mês do ano passado ({yoy}).",
+                    "fr": "Le mois a contribué {now} contre {py} au même mois l'an dernier ({yoy})."},
+    "ev_alerts": {"pt": "Alertas de mudança de tendência", "fr": "Alertes de changement de tendance"},
+    "ev_alert_slow": {"pt": "**{name}** contribuiu {now} este mês, contra {py} no mesmo mês do ano passado: está desacelerando.",
+                      "fr": "**{name}** a contribué {now} ce mois, contre {py} au même mois l'an dernier : il ralentit."},
+    "ev_alert_margin": {"pt": "**{name}** vendeu {sales} este mês, mas sua margem caiu {pp} contra o mesmo mês do ano passado.",
+                        "fr": "**{name}** a vendu {sales} ce mois, mais sa marge a chuté de {pp} face au même mois l'an dernier."},
+    "ev_alert_stall": {"pt": "**{name}** não faturou este mês; no mesmo mês do ano passado fez {py}.",
+                       "fr": "**{name}** n'a pas facturé ce mois ; au même mois l'an dernier il a fait {py}."},
+    "ev_detail": {"pt": "Detalhe mensal", "fr": "Détail mensuel"},
+    "ev_col_month": {"pt": "Vendas mês", "fr": "Ventes mois"},
+    "ev_col_month_py": {"pt": "Mês ano passado", "fr": "Mois l'an dernier"},
+    "ev_col_yoy": {"pt": "Δ vs ano passado", "fr": "Δ vs l'an dernier"},
+    "ev_col_margin": {"pt": "Margem mês", "fr": "Marge mois"},
+    "ev_col_margin_pp": {"pt": "Δ margem pp", "fr": "Δ marge pp"},
+    "ev_col_ytd_prev": {"pt": "YTD mês passado", "fr": "YTD mois dernier"},
+    "ev_col_ytd_now": {"pt": "YTD agora", "fr": "YTD maintenant"},
+    "ev_col_mom": {"pt": "Δ YTD %", "fr": "Δ YTD %"},
+    # ---- upload / session / welcome ----
+    "upload_error": {"pt": "Não foi possível ler {name}: {error}", "fr": "Impossible de lire {name} : {error}"},
+    "processing": {"pt": "Processando {name}…", "fr": "Traitement de {name}…"},
+    "file_loaded": {"pt": "{label}: {rows} linhas · {y0}–{y1}", "fr": "{label} : {rows} lignes · {y0}–{y1}"},
+    "auto_wiped": {"pt": "A sessão foi apagada automaticamente por inatividade.", "fr": "La session a été effacée automatiquement pour inactivité."},
+    "how_1": {"pt": "**1 · Carregar**\n\nDois exports do BI: o YTD do ano em curso contra o ano anterior, e o histórico multi-ano / Full Year. Pode-se trabalhar com um só, com funcionalidade reduzida.",
+              "fr": "**1 · Charger**\n\nDeux exports du BI : le YTD de l'année en cours face à la précédente, et l'historique multi-années / Full Year. On peut travailler avec un seul, avec des fonctions réduites."},
+    "how_2": {"pt": "**2 · Filtrar**\n\nLigue e desligue métricas, mude o agrupamento, restrinja clientes e famílias. Todo o painel reage, como uma tabela dinâmica.",
+              "fr": "**2 · Filtrer**\n\nActivez et désactivez des mesures, changez le regroupement, restreignez clients et familles. Tout le tableau réagit, comme un tableau croisé."},
+    "how_3": {"pt": "**3 · Decidir**\n\nPontes de preço, volume e custo; desvios ordenados por dólares; e bullets de estratégia calculados sobre seu filtro.",
+              "fr": "**3 · Décider**\n\nPonts de prix, volume et coût ; écarts classés par dollars ; et puces de stratégie calculées sur votre filtre."},
+    "privacy_long": {"pt": "**Privacidade.** Os arquivos são processados em memória. Nada é escrito em disco, não há banco de dados nem histórico. Ao fechar a aba, ao atingir o tempo de inatividade ou ao clicar «Apagar tudo», não sobra rastro.",
+                     "fr": "**Confidentialité.** Les fichiers sont traités en mémoire. Rien n'est écrit sur disque, pas de base de données ni d'historique. À la fermeture de l'onglet, au délai d'inactivité ou en cliquant « Tout effacer », aucune trace ne subsiste."},
+    "filter_customer_help": {"pt": "Vazio = todos. Filtre por grupo para conservar o budget, que é carregado nesse nível.",
+                             "fr": "Vide = tous. Filtrez par groupe pour conserver le budget, chargé à ce niveau."},
+    "filter_account_help": {"pt": "Vazio = todas as contas do grupo. O budget do grupo é conservado.",
+                            "fr": "Vide = tous les comptes du groupe. Le budget du groupe est conservé."},
+    "filter_active": {"pt": "🔎 Filtro ativo · {n} linhas", "fr": "🔎 Filtre actif · {n} lignes"},
+    "include_open_help": {"pt": "Soma os pedidos já tomados e ainda não faturados a vendas, profit e volume.",
+                          "fr": "Ajoute les commandes déjà prises et non encore facturées aux ventes, profit et volume."},
+    "materiality_help": {"pt": "Oculta linhas abaixo deste valor em ambos os períodos.", "fr": "Masque les lignes sous ce montant sur les deux périodes."},
+    "budget_level_note": {"pt": "ℹ️ O budget é carregado a nível de grupo, não por conta individual: neste agrupamento as comparações vs budget ficam desativadas.",
+                          "fr": "ℹ️ Le budget est chargé au niveau du groupe, pas par compte individuel : dans ce regroupement les comparaisons vs budget sont désactivées."},
+    # ---- bridge effects ----
+    "eff_volume": {"pt": "Efeito volume", "fr": "Effet volume"},
+    "eff_price": {"pt": "Efeito preço", "fr": "Effet prix"},
+    "eff_cost": {"pt": "Efeito custo", "fr": "Effet coût"},
+    "eff_new": {"pt": "Entradas cliente-item", "fr": "Entrées client-article"},
+    "eff_lost": {"pt": "Saídas cliente-item", "fr": "Sorties client-article"},
+    "eff_other": {"pt": "Outros", "fr": "Autres"},
+    # ---- overview ----
+    "ov_title": {"pt": "Resumo {cur} vs {base}", "fr": "Résumé {cur} vs {base}"},
+    "ov_note": {"pt": "Base: {basis} · Agrupamento: {level} · {n} clientes no filtro.", "fr": "Base : {basis} · Regroupement : {level} · {n} clients dans le filtre."},
+    "basis_invoiced": {"pt": "faturado", "fr": "facturé"},
+    "basis_sold_open": {"pt": "faturado + carteira aberta", "fr": "facturé + carnet de commandes"},
+    "ov_sales_bar": {"pt": "Vendas vs budget anual", "fr": "Ventes vs budget annuel"},
+    "ov_profit_bar": {"pt": "Profit vs budget anual", "fr": "Profit vs budget annuel"},
+    "ov_qty_bar": {"pt": "Volume vs budget anual", "fr": "Volume vs budget annuel"},
+    "ov_pace_sub": {"pt": "marcador = ritmo esperado a esta altura", "fr": "repère = rythme attendu à ce stade"},
+    "ov_sales_bridge": {"pt": "Ponte de vendas {base} → {cur}", "fr": "Pont des ventes {base} → {cur}"},
+    "ov_margin_bridge": {"pt": "Ponte de margem {base} → {cur}", "fr": "Pont de marge {base} → {cur}"},
+    "ov_bridge_note": {"pt": "As vendas {dir} {amount} ({pct}), com {driver} como componente dominante ({value}).",
+                       "fr": "Les ventes {dir} de {amount} ({pct}), avec {driver} comme composante dominante ({value})."},
+    "dir_up": {"pt": "sobem", "fr": "augmentent"},
+    "dir_down": {"pt": "caem", "fr": "baissent"},
+    "ov_margin_note": {"pt": "Efeito preço {price} · efeito custo {cost}. A margem se move principalmente por {cause}.",
+                       "fr": "Effet prix {price} · effet coût {cost}. La marge évolue surtout par {cause}."},
+    "cause_price": {"pt": "preço", "fr": "le prix"},
+    "cause_cost": {"pt": "custo unitário", "fr": "le coût unitaire"},
+    "ov_budget_gap": {"pt": "Gap vs budget por {level}", "fr": "Écart vs budget par {level}"},
+    "ov_stack": {"pt": "Faturado + carteira vs budget por {level}", "fr": "Facturé + carnet vs budget par {level}"},
+    "ov_stack_note": {"pt": "A barra sólida é o faturado; a hachurada, os {open} já vendidos e pendentes de embarque. Somados dão {so}. {n} {level} alcançam ou superam seu budget contando a carteira.",
+                      "fr": "La barre pleine est le facturé ; la hachurée, les {open} déjà vendus en attente d'expédition. Ensemble ils font {so}. {n} {level} atteignent ou dépassent leur budget en comptant le carnet."},
+    "cl_stack": {"pt": "Faturado + carteira vs budget por família", "fr": "Facturé + carnet vs budget par famille"},
+    "ov_backlog_card": {"pt": "Carteira aberta vs gap de budget", "fr": "Carnet ouvert vs écart de budget"},
+    "ov_backlog_delta": {"pt": "cobre {pct} do gap de {gap}", "fr": "couvre {pct} de l'écart de {gap}"},
+    # ---- backlog ----
+    "bl_title": {"pt": "Carteira aberta — pedidos tomados e ainda não faturados", "fr": "Carnet de commandes — commandes prises et non encore facturées"},
+    "bl_note": {"pt": "É negócio já ganho: o impacto que terá ao ser faturado, contra o budget e contra o ano base.",
+                "fr": "C'est du chiffre déjà gagné : l'impact qu'il aura une fois facturé, face au budget et à l'année de base."},
+    "bl_none": {"pt": "O arquivo ativo não traz carteira aberta (coluna Open Orders vazia ou ausente).",
+                "fr": "Le fichier actif n'a pas de carnet ouvert (colonne Open Orders vide ou absente)."},
+    "bl_total": {"pt": "Carteira aberta total", "fr": "Carnet ouvert total"},
+    "bl_share": {"pt": "Carteira sobre faturado", "fr": "Carnet sur facturé"},
+    "bl_groups": {"pt": "{n} de {total} com carteira", "fr": "{n} sur {total} avec carnet"},
+    "bl_coverage": {"pt": "Cobertura do gap", "fr": "Couverture de l'écart"},
+    "bl_coverage_sub": {"pt": "gap de budget {gap}", "fr": "écart de budget {gap}"},
+    "bl_profit": {"pt": "Profit em carteira", "fr": "Profit dans le carnet"},
+    "bl_margin_sub": {"pt": "margem da carteira {pct}", "fr": "marge du carnet {pct}"},
+    "bl_bridge": {"pt": "Do faturado ao budget: quanto a carteira fecha", "fr": "Du facturé au budget : combien le carnet comble"},
+    "bl_bridge_note": {"pt": "Faturado {inv} + carteira {open} = {so}, contra um budget de {bdg}. A carteira cobre {cov} do gap e deixa {left} por conseguir.",
+                       "fr": "Facturé {inv} + carnet {open} = {so}, face à un budget de {bdg}. Le carnet couvre {cov} de l'écart et laisse {left} à conquérir."},
+    "bl_stack": {"pt": "Faturado e carteira por {level}", "fr": "Facturé et carnet par {level}"},
+    "bl_rank": {"pt": "Maior carteira aberta por {level}", "fr": "Plus grand carnet ouvert par {level}"},
+    "bl_effect": {"pt": "Efeito da carteira sobre a variação vs {base}", "fr": "Effet du carnet sur la variation vs {base}"},
+    "bl_effect_note": {"pt": "Sem carteira a variação é {without}; com carteira passa a {with_}. A carteira inverte o sinal em {n} {level}.",
+                       "fr": "Sans carnet la variation est {without} ; avec carnet elle devient {with_}. Le carnet inverse le signe pour {n} {level}."},
+    "bl_table": {"pt": "Detalhe da carteira", "fr": "Détail du carnet"},
+    "bl_col_open": {"pt": "Carteira", "fr": "Carnet"},
+    "bl_col_share": {"pt": "% sobre faturado", "fr": "% du facturé"},
+    "bl_col_so": {"pt": "Faturado + carteira", "fr": "Facturé + carnet"},
+    "bl_col_cover": {"pt": "Avanço com carteira", "fr": "Avancement avec carnet"},
+    # ---- full year ----
+    "fy_trend": {"pt": "Tendência multi-ano", "fr": "Tendance pluriannuelle"},
+    "fy_trend_note": {"pt": "Do arquivo histórico, internamente consistente: anos {y0}–{y1}. Bandas ocultas por vazias ou parciais: {hidden}.",
+                      "fr": "Du fichier historique, cohérent en interne : années {y0}–{y1}. Bandes masquées car vides ou partielles : {hidden}."},
+    "fy_sales_year": {"pt": "Vendas por ano", "fr": "Ventes par année"},
+    "fy_sales_margin": {"pt": "Vendas e margem por ano", "fr": "Ventes et marge par année"},
+    "fy_cagr": {"pt": "CAGR de vendas {y0}–{y1}: {cagr} · margem {m0} → {m1} ({pp}).",
+                "fr": "CAGR des ventes {y0}–{y1} : {cagr} · marge {m0} → {m1} ({pp})."},
+    "fy_need_ytd": {"pt": "Carregue também o arquivo YTD para habilitar o forecast de aterrissagem.",
+                    "fr": "Chargez aussi le fichier YTD pour activer la prévision d'atterrissage."},
+    "fy_basis_warn": {"pt": "**Aviso de base de data.** Os dois arquivos não batem em {year}: {bad} grupos mostram um YTD maior que seu ano completo, o que é impossível na mesma base. Projetam-se individualmente {ok} de {total} grupos; o resto usa o índice da carteira e fica marcado como indicativo. {match} coincidem exatamente entre arquivos.",
+                      "fr": "**Avertissement de base de date.** Les deux fichiers ne concordent pas en {year} : {bad} groupes montrent un YTD supérieur à leur année complète, impossible sur une même base. {ok} groupes sur {total} sont projetés individuellement ; le reste utilise l'indice du portefeuille et est marqué comme indicatif. {match} coïncident exactement entre fichiers."},
+    "fy_share_done": {"pt": "% do FY {year} já alcançado", "fr": "% du FY {year} déjà atteint"},
+    "fy_share_sub": {"pt": "ritmo do ano passado a esta altura: {pace}", "fr": "rythme de l'an dernier à ce stade : {pace}"},
+    "fy_attain": {"pt": "Avanço de budget", "fr": "Avancement du budget"},
+    "fy_pace_sub": {"pt": "pace esperado {pace}", "fr": "pace attendu {pace}"},
+    "fy_landing_sub": {"pt": "{delta} vs budget", "fr": "{delta} vs budget"},
+    "fy_projectable": {"pt": "Grupos projetáveis", "fr": "Groupes projetables"},
+    "fy_inconsistent": {"pt": "{n} com base inconsistente", "fr": "{n} à base incohérente"},
+    "fy_bullet": {"pt": "Aterrissagem {cur} vs budget e vs FY {prior}", "fr": "Atterrissage {cur} vs budget et vs FY {prior}"},
+    "fy_landing_by": {"pt": "Aterrissagem por {level}", "fr": "Atterrissage par {level}"},
+    "fy_level_note": {"pt": "O budget é carregado a nível de grupo, então a aterrissagem é calculada por Cliente (grupo) mesmo que você agrupe por conta.",
+                      "fr": "Le budget est chargé au niveau du groupe, donc l'atterrissage se calcule par Client (groupe) même si vous groupez par compte."},
+    "fy_progress": {"pt": "Alcançado vs objetivo (maior entre budget e FY {prior})", "fr": "Atteint vs objectif (le plus grand entre budget et FY {prior})"},
+    "fy_gap_chart": {"pt": "Gap projetado no fechamento vs budget", "fr": "Écart projeté à la clôture vs budget"},
+    "fy_gap_note": {"pt": "{n} {level} projetam fechar abaixo do budget, num total de {total}.",
+                    "fr": "{n} {level} devraient clôturer sous le budget, pour un total de {total}."},
+    "fy_diag_title": {"pt": "Diagnóstico de base entre arquivos (por que alguns não se projetam)", "fr": "Diagnostic de base entre fichiers (pourquoi certains ne sont pas projetés)"},
+    "fy_diag_caption": {"pt": "«Coincide» = mesma cifra em ambos os arquivos. «Base inconsistente» = o YTD supera o ano completo, sinal de que os arquivos usam campos de data distintos. Para eliminá-lo por completo, exporte o Full Year do ano anterior com o mesmo relatório que gera o arquivo YTD.",
+                        "fr": "« Coïncide » = même chiffre dans les deux fichiers. « Base incohérente » = le YTD dépasse l'année complète, signe que les fichiers utilisent des champs de date différents. Pour l'éliminer, exportez le Full Year de l'année précédente avec le même rapport que le fichier YTD."},
+    # ---- client sheet ----
+    "cl_title": {"pt": "Ficha do cliente", "fr": "Fiche client"},
+    "cl_pick": {"pt": "Cliente (grupo)", "fr": "Client (groupe)"},
+    "cl_note": {"pt": "Posição {rank} de {total} por vendas · {share} do faturamento total · {accounts} conta(s): {names}",
+                "fr": "Rang {rank} sur {total} par ventes · {share} du chiffre total · {accounts} compte(s) : {names}"},
+    "cl_no_activity": {"pt": "{client} não tem atividade nos anos selecionados.", "fr": "{client} n'a aucune activité sur les années sélectionnées."},
+    "cl_no_budget": {"pt": "sem budget carregado para este cliente", "fr": "aucun budget chargé pour ce client"},
+    "cl_budget_note": {"pt": "Faltam {gap} para o budget. Tem {open} em carteira aberta, que cobre {cover} desse gap.",
+                       "fr": "Il manque {gap} pour le budget. {open} en carnet ouvert, couvrant {cover} de cet écart."},
+    "cl_landing_note": {"pt": "Aterrissagem {landing}, calculada com {source} ({index} do ano se alcança a esta altura). Gap vs budget: {gap}.",
+                        "fr": "Atterrissage {landing}, calculé avec {source} ({index} de l'année est atteint à ce stade). Écart vs budget : {gap}."},
+    "cl_own_index": {"pt": "seu próprio índice de sazonalidade", "fr": "son propre indice de saisonnalité"},
+    "cl_portfolio_index": {"pt": "o índice da carteira (este cliente não é projetável sozinho)", "fr": "l'indice du portefeuille (ce client n'est pas projetable seul)"},
+    "cl_history": {"pt": "Histórico do cliente por ano", "fr": "Historique du client par année"},
+    "cl_why": {"pt": "Por que se moveu {delta}", "fr": "Pourquoi il a bougé de {delta}"},
+    "cl_bridge_note": {"pt": "Volume {volume} · preço {price}. O movimento é sobretudo de {cause}.", "fr": "Volume {volume} · prix {price}. Le mouvement vient surtout de {cause}."},
+    "cl_products": {"pt": "O que compra", "fr": "Ce qu'il achète"},
+    "cl_alerts": {"pt": "Alertas desta conta", "fr": "Alertes de ce compte"},
+    "cl_alert_lost": {"pt": "**{n} itens deixaram de ser comprados** ({total} no ano base): {names}.",
+                      "fr": "**{n} articles ne sont plus achetés** ({total} l'année de base) : {names}."},
+    "cl_alert_new": {"pt": "**{n} itens novos** contribuem {total} neste período.", "fr": "**{n} nouveaux articles** contribuent {total} sur cette période."},
+    "cl_alert_margin": {"pt": "**Margem {cur}** contra {base} do ano base ({pp}).", "fr": "**Marge {cur}** face à {base} de l'année de base ({pp})."},
+    "cl_alert_price": {"pt": "**Queda de preço**: {name} baixa {pct} sobre {sales} de vendas.", "fr": "**Baisse de prix** : {name} chute de {pct} sur {sales} de ventes."},
+    "cl_alert_backlog": {"pt": "**{total} em carteira aberta** já ganhos, pendentes de embarque.", "fr": "**{total} en carnet ouvert** déjà gagnés, en attente d'expédition."},
+    "cl_alert_gap": {"pt": "**Projeta fechar {total} abaixo do seu budget.**", "fr": "**Devrait clôturer {total} sous son budget.**"},
+    # ---- dimension ----
+    "dim_title": {"pt": "{level} · {cur} vs {base}", "fr": "{level} · {cur} vs {base}"},
+    "dim_note": {"pt": "{n} registros no filtro · {new} novos · {lost} perdidos · limite de materialidade {mat}.",
+                 "fr": "{n} enregistrements dans le filtre · {new} nouveaux · {lost} perdus · seuil de matérialité {mat}."},
+    "dim_top_var": {"pt": "Maiores variações de vendas", "fr": "Plus grandes variations de ventes"},
+    "dim_contrib": {"pt": "Contribuição ao delta por {level}", "fr": "Contribution au delta par {level}"},
+    "dim_quadrant": {"pt": "Crescimento vs margem por {level}", "fr": "Croissance vs marge par {level}"},
+    "dim_quadrant_note": {"pt": "Tamanho da bolha = vendas do período atual. Quadrante inferior direito: crescem, mas com margem baixa — candidatos a revisão de preço.",
+                          "fr": "Taille de la bulle = ventes de la période actuelle. Quadrant en bas à droite : croissance mais marge faible — candidats à une révision de prix."},
+    "dim_treemap": {"pt": "Famílias por vendas, coloridas por variação de margem", "fr": "Familles par ventes, colorées par variation de marge"},
+    "dim_scatter": {"pt": "Preço vs volume — onde subiu o preço e perdeu quilos", "fr": "Prix vs volume — où le prix a monté et le volume baissé"},
+    "dim_prod_bridge": {"pt": "Ponte de margem a nível produto", "fr": "Pont de marge au niveau produit"},
+    "dim_churn": {"pt": "⚠️ {n} {level} sem atividade em {year} — {amount} em jogo", "fr": "⚠️ {n} {level} sans activité en {year} — {amount} en jeu"},
+    "dim_cross": {"pt": "Cruzamento {a} × {b}", "fr": "Croisement {a} × {b}"},
+    "dim_cross_chart": {"pt": "Variação % de vendas", "fr": "Variation % des ventes"},
+    "dim_detail": {"pt": "Detalhe", "fr": "Détail"},
+    "quad_stars": {"pt": "Estrelas", "fr": "Étoiles"},
+    "quad_defend": {"pt": "Defender margem", "fr": "Défendre la marge"},
+    "quad_price": {"pt": "Revisar preço", "fr": "Réviser le prix"},
+    "quad_rescue": {"pt": "Resgatar", "fr": "Sauver"},
+    "axis_growth": {"pt": "Crescimento vs ano base", "fr": "Croissance vs année de base"},
+    "axis_margin": {"pt": "Margem %", "fr": "Marge %"},
+    "axis_dprice": {"pt": "Δ preço unitário", "fr": "Δ prix unitaire"},
+    "axis_dvolume": {"pt": "Δ volume", "fr": "Δ volume"},
+    # ---- deviations ----
+    "dev_title": {"pt": "Radar de desvios", "fr": "Radar des écarts"},
+    "dev_note": {"pt": "Ordenado por impacto em dólares, não por porcentagem: uma queda de 300% sobre uma conta de 400 USD não deveria encabeçar nenhuma lista.",
+                 "fr": "Classé par impact en dollars, pas en pourcentage : une chute de 300 % sur un compte de 400 USD ne devrait jamais être en tête."},
+    "dev_type": {"pt": "Tipo de desvio", "fr": "Type d'écart"},
+    "dev_direction": {"pt": "Direção", "fr": "Direction"},
+    "dev_against": {"pt": "Medir contra", "fr": "Mesurer contre"},
+    "dev_all": {"pt": "Todos", "fr": "Tous"},
+    "dev_negative": {"pt": "Negativos", "fr": "Négatifs"},
+    "dev_positive": {"pt": "Positivos", "fr": "Positifs"},
+    "dev_base_year": {"pt": "Ano base", "fr": "Année de base"},
+    "dev_no_budget": {"pt": "O arquivo ativo não traz budget; mede-se contra o ano base.", "fr": "Le fichier actif n'a pas de budget ; on mesure contre l'année de base."},
+    "dev_neg_total": {"pt": "Desvio negativo total", "fr": "Écart négatif total"},
+    "dev_pos_total": {"pt": "Desvio positivo total", "fr": "Écart positif total"},
+    "dev_net": {"pt": "Líquido", "fr": "Net"},
+    "dev_records": {"pt": "{n} registros", "fr": "{n} enregistrements"},
+    "dev_against_sub": {"pt": "contra {what}", "fr": "contre {what}"},
+    "dev_top5": {"pt": "Concentração top 5", "fr": "Concentration top 5"},
+    "dev_top5_sub": {"pt": "do movimento absoluto", "fr": "du mouvement absolu"},
+    "dev_chart": {"pt": "Maiores desvios vs {what}", "fr": "Plus grands écarts vs {what}"},
+    "dev_compose": {"pt": "Composição do desvio por tipo", "fr": "Composition de l'écart par type"},
+    "dev_none": {"pt": "Nenhum registro atende a estes critérios.", "fr": "Aucun enregistrement ne remplit ces critères."},
+    "type_churn": {"pt": "Perda de cliente", "fr": "Perte de client"},
+    "type_new": {"pt": "Cliente novo", "fr": "Nouveau client"},
+    "type_volume": {"pt": "Volume", "fr": "Volume"},
+    "type_price": {"pt": "Preço", "fr": "Prix"},
+    "type_cost": {"pt": "Custo", "fr": "Coût"},
+    # ---- strategy ----
+    "st_title": {"pt": "Estratégia e próximos passos", "fr": "Stratégie et prochaines étapes"},
+    "st_note": {"pt": "Gerado sobre o filtro ativo: {cur} vs {base}, agrupado por {level}. Mude os filtros e os bullets se recalculam.",
+                "fr": "Généré sur le filtre actif : {cur} vs {base}, groupé par {level}. Changez les filtres et les puces se recalculent."},
+    "st_diagnosis": {"pt": "🔍 Diagnóstico", "fr": "🔍 Diagnostic"},
+    "st_diagnosis_c": {"pt": "O que aconteceu, quantificado.", "fr": "Ce qui s'est passé, quantifié."},
+    "st_risks": {"pt": "⚠️ Riscos", "fr": "⚠️ Risques"},
+    "st_risks_c": {"pt": "O que pode piorar se ninguém agir.", "fr": "Ce qui peut empirer si personne n'agit."},
+    "st_opps": {"pt": "🌱 Oportunidades", "fr": "🌱 Opportunités"},
+    "st_opps_c": {"pt": "Onde está o upside disponível.", "fr": "Où se trouve le potentiel disponible."},
+    "st_actions": {"pt": "🎯 Ações sugeridas", "fr": "🎯 Actions suggérées"},
+    "st_actions_c": {"pt": "Priorizadas por dólares em jogo.", "fr": "Priorisées par dollars en jeu."},
+    "st_edit": {"pt": "Editar antes de exportar", "fr": "Modifier avant d'exporter"},
+    "st_dl_md": {"pt": "Baixar resumo (Markdown)", "fr": "Télécharger le résumé (Markdown)"},
+    "st_dl_xlsx": {"pt": "Baixar bullets (Excel)", "fr": "Télécharger les puces (Excel)"},
+    "st_report_title": {"pt": "Análise de vendas {cur} vs {base}", "fr": "Analyse des ventes {cur} vs {base}"},
+    "st_report_meta": {"pt": "_Gerado {stamp} · agrupamento por {level}_", "fr": "_Généré {stamp} · regroupement par {level}_"},
+    # ---- data & quality ----
+    "dq_title": {"pt": "Dados e qualidade", "fr": "Données et qualité"},
+    "dq_note": {"pt": "O export do BI é uma tabela dinâmica com subtotais embutidos. Tudo o que você vê é calculado sobre as linhas folha; os subtotais são recalculados, nunca somados.",
+                "fr": "L'export du BI est un tableau croisé avec des sous-totaux intégrés. Tout ce que vous voyez est calculé sur les lignes feuilles ; les sous-totaux sont recalculés, jamais additionnés."},
+    "dq_not_loaded": {"pt": "{title}: não carregado.", "fr": "{title} : non chargé."},
+    "dq_rows": {"pt": "Linhas no arquivo", "fr": "Lignes dans le fichier"},
+    "dq_leaves": {"pt": "Linhas folha analisadas", "fr": "Lignes feuilles analysées"},
+    "dq_pruned": {"pt": "Subtotais podados", "fr": "Sous-totaux élagués"},
+    "dq_bands": {"pt": "Bandas de ano", "fr": "Bandes d'année"},
+    "dq_recognised": {"pt": "O que o parser reconheceu", "fr": "Ce que le parser a reconnu"},
+    "dq_sheet": {"pt": "Planilha", "fr": "Feuille"},
+    "dq_header_row": {"pt": "Linha de cabeçalho", "fr": "Ligne d'en-tête"},
+    "dq_year_source": {"pt": "Origem do ano", "fr": "Origine de l'année"},
+    "dq_dims": {"pt": "Dimensões detectadas", "fr": "Dimensions détectées"},
+    "dq_metrics": {"pt": "Métricas detectadas", "fr": "Mesures détectées"},
+    "dq_ignored": {"pt": "Colunas ignoradas ({n})", "fr": "Colonnes ignorées ({n})"},
+    "dq_notes": {"pt": "Notas de interpretação", "fr": "Notes d'interprétation"},
+    "dq_recon": {"pt": "Conciliação entre arquivos · {year}", "fr": "Réconciliation entre fichiers · {year}"},
+    "dq_match": {"pt": "Coincidem", "fr": "Coïncident"},
+    "dq_coherent": {"pt": "Coerentes (YTD < FY)", "fr": "Cohérents (YTD < FY)"},
+    "dq_inconsistent": {"pt": "Base inconsistente", "fr": "Base incohérente"},
+    "dq_recon_error": {"pt": "O total {year} do arquivo YTD ({ytd}) supera o do arquivo Full Year ({fy}). Na mesma base de data isso é impossível, então os dois exports usam campos distintos. O forecast lida com isso marcando cada grupo, mas a solução de fundo é exportar o Full Year do ano anterior com o mesmo relatório que gera o arquivo YTD.",
+                       "fr": "Le total {year} du fichier YTD ({ytd}) dépasse celui du fichier Full Year ({fy}). Sur une même base de date c'est impossible, donc les deux exports utilisent des champs différents. La prévision le gère en marquant chaque groupe, mais la vraie solution est d'exporter le Full Year de l'année précédente avec le même rapport que le fichier YTD."},
+    # ---- insights ----
+    "ins_nodata": {"pt": "Sem dados suficientes para diagnosticar com os filtros atuais.", "fr": "Pas assez de données pour diagnostiquer avec les filtres actuels."},
+    "ins_headline": {"pt": "**Vendas {cur}** contra {base} do ano base: {delta} ({pct}).", "fr": "**Ventes {cur}** face à {base} de l'année de base : {delta} ({pct})."},
+    "ins_driver": {"pt": "O movimento se explica sobretudo por **{driver}** ({value}). Volume {volume}, preço {price}.",
+                   "fr": "Le mouvement s'explique surtout par **{driver}** ({value}). Volume {volume}, prix {price}."},
+    "ins_margin": {"pt": "**Margem {cur}** vs {base} ({pp}). O componente dominante é o **{cause}** (preço {price}, custo {cost} em profit).",
+                   "fr": "**Marge {cur}** vs {base} ({pp}). La composante dominante est **{cause}** (prix {price}, coût {cost} en profit)."},
+    "ins_concentration": {"pt": "**3 contas concentram {pct} do movimento total**: {names}.", "fr": "**3 comptes concentrent {pct} du mouvement total** : {names}."},
+    "ins_pace": {"pt": "**Avanço de budget {att}** contra um pace esperado de {pace} a esta altura: {verdict} do ritmo. Aterrissagem projetada {landing} vs budget {budget}.",
+                 "fr": "**Avancement du budget {att}** face à un pace attendu de {pace} à ce stade : {verdict} du rythme. Atterrissage projeté {landing} vs budget {budget}."},
+    "ins_above": {"pt": "acima", "fr": "au-dessus"},
+    "ins_below": {"pt": "abaixo", "fr": "en dessous"},
+    "ins_attain": {"pt": "**Avanço de budget {att}** sobre o budget anual de {budget}.", "fr": "**Avancement du budget {att}** sur le budget annuel de {budget}."},
+    "ins_top_product": {"pt": "A nível produto, **{name}** é o maior movimento individual ({value}).", "fr": "Au niveau produit, **{name}** est le plus grand mouvement individuel ({value})."},
+    "ins_churn": {"pt": "**Churn: {n} contas sem faturamento neste período** que valiam {total}. A maior: {name} ({value}).",
+                  "fr": "**Churn : {n} comptes sans facturation cette période** valant {total}. Le plus grand : {name} ({value})."},
+    "ins_margin_erosion": {"pt": "**Erosão de margem em {n} contas materiais** (queda > 3 pp). A mais severa: {name} com {pp} sobre {sales} de vendas.",
+                           "fr": "**Érosion de marge sur {n} comptes matériels** (baisse > 3 pp). Le pire : {name} avec {pp} sur {sales} de ventes."},
+    "ins_concentration_risk": {"pt": "**Concentração {level}** (Herfindahl {hhi}). O maior cliente pesa {pct} do faturamento do período.",
+                               "fr": "**Concentration {level}** (Herfindahl {hhi}). Le plus gros client pèse {pct} du chiffre de la période."},
+    "ins_conc_high": {"pt": "alta", "fr": "élevée"},
+    "ins_conc_mid": {"pt": "moderada", "fr": "modérée"},
+    "ins_conc_low": {"pt": "baixa", "fr": "faible"},
+    "ins_budget_short": {"pt": "**{n} grupos projetam fechar abaixo do seu budget**, num total de {total}. O maior gap: {name} ({value}).",
+                         "fr": "**{n} groupes devraient clôturer sous leur budget**, pour un total de {total}. Le plus grand écart : {name} ({value})."},
+    "ins_unprojectable": {"pt": "⚠️ **{n} de {total} grupos não são projetáveis** por diferença de base entre os dois arquivos; usam o índice da carteira e sua aterrissagem é indicativa, não auditável.",
+                          "fr": "⚠️ **{n} groupes sur {total} ne sont pas projetables** en raison de la différence de base entre les deux fichiers ; ils utilisent l'indice du portefeuille et leur atterrissage est indicatif, non auditable."},
+    "ins_product_drop": {"pt": "**Produto em retrocesso material**: {name} cai {value} ({pct}).", "fr": "**Produit en net recul** : {name} chute de {value} ({pct})."},
+    "ins_growing": {"pt": "**{n} contas em crescimento** contribuem +{total}. As três maiores: {detail}.", "fr": "**{n} comptes en croissance** apportent +{total}. Les trois plus grands : {detail}."},
+    "ins_rich_products": {"pt": "**Produtos de margem alta e baixa penetração** — candidatos a impulsionar: {detail}.", "fr": "**Produits à forte marge et faible pénétration** — à pousser : {detail}."},
+    "ins_new_accounts": {"pt": "**{n} contas novas** somam {total}. Consolidar o segundo pedido é a conversão que define se ficam na carteira.",
+                         "fr": "**{n} nouveaux comptes** totalisent {total}. Concrétiser la deuxième commande est la conversion qui décide s'ils restent."},
+    "ins_backlog": {"pt": "**{total} em carteira aberta** distribuídos em {n} contas: negócio já ganho, só aguardando embarque.",
+                    "fr": "**{total} en carnet ouvert** répartis sur {n} comptes : chiffre déjà gagné, en attente d'expédition."},
+    "ins_recover": {"pt": "**Recuperar run-rate em {n} contas rentáveis** (margem > 40%) devolveria até {total} de faturamento sem sacrificar margem.",
+                    "fr": "**Récupérer le run-rate sur {n} comptes rentables** (marge > 40 %) rendrait jusqu'à {total} de chiffre sans sacrifier la marge."},
+    "act_churn": {"pt": "**30 dias · Recuperação de churn** — contatar {names}. Em jogo {total}. Dono: comercial da conta.",
+                  "fr": "**30 jours · Récupération du churn** — contacter {names}. {total} en jeu. Responsable : commercial du compte."},
+    "act_cost": {"pt": "**30 dias · Revisão de custos** — o efeito custo drena {value} de profit. Revisar contratos de compra e repassar à lista de preços onde o contrato permitir.",
+                 "fr": "**30 jours · Revue des coûts** — l'effet coût draine {value} de profit. Revoir les contrats d'achat et répercuter sur les tarifs là où le contrat le permet."},
+    "act_price": {"pt": "**60 dias · Repricing seletivo** — o efeito preço subtrai {value}. Priorizar itens com volume estável e elasticidade baixa antes de tocar contas em risco.",
+                  "fr": "**60 jours · Repricing sélectif** — l'effet prix retire {value}. Prioriser les articles à volume stable et faible élasticité avant de toucher aux comptes à risque."},
+    "act_volume": {"pt": "**60 dias · Plano de volume** — perderam-se {value} em quilos. Definir meta de reposição por conta e produto.",
+                   "fr": "**60 jours · Plan de volume** — {value} perdus en volume. Définir un objectif de reconstitution par compte et produit."},
+    "act_backlog": {"pt": "**Contínuo · Conversão de carteira** — {total} em pedidos abertos. Assegurar data de embarque para que caiam dentro do exercício.",
+                    "fr": "**Continu · Conversion du carnet** — {total} en commandes ouvertes. Sécuriser la date d'expédition pour qu'elles tombent dans l'exercice."},
+    "act_budget": {"pt": "**90 dias · Fechar o gap de budget** — plano conta a conta para os 5 maiores gaps projetados ({total}). Revisão quinzenal com acompanhamento da carteira aberta.",
+                   "fr": "**90 jours · Combler l'écart de budget** — plan compte par compte pour les 5 plus grands écarts projetés ({total}). Revue bimensuelle avec suivi du carnet."},
+    # ---- one-pager ----
+    "op_tab_title": {"pt": "Pontuação de progresso e one-pager executivo", "fr": "Score de progression et one-pager exécutif"},
+    "op_note": {"pt": "A pontuação mistura vendas e margem: 100 significa aterrissar exatamente no budget. Não tem teto — projetar 15% acima marca 115.",
+                "fr": "Le score mêle ventes et marge : 100 signifie atterrir exactement sur le budget. Sans plafond — projeter 15 % au-dessus donne 115."},
+    "op_title": {"pt": "Resumo executivo de vendas", "fr": "Résumé exécutif des ventes"},
+    "op_generated": {"pt": "Gerado", "fr": "Généré"},
+    "op_confidential": {"pt": "Uso interno Robertet", "fr": "Usage interne Robertet"},
+    "op_vs_budget": {"pt": "Avanço contra budget anual", "fr": "Avancement vs budget annuel"},
+    "op_up": {"pt": "Maiores contribuições", "fr": "Plus grandes contributions"},
+    "op_down": {"pt": "Maiores quedas", "fr": "Plus grandes baisses"},
+    "op_worst_scores": {"pt": "Pontuações mais baixas", "fr": "Scores les plus bas"},
+    "op_why": {"pt": "Por quê", "fr": "Pourquoi"},
+    "op_actions": {"pt": "Diagnóstico e ações", "fr": "Diagnostic et actions"},
+    "op_bridge": {"pt": "Efeito volume {volume} · efeito preço {price} sobre a variação do ano.", "fr": "Effet volume {volume} · effet prix {price} sur la variation de l'année."},
+    "op_backlog_line": {"pt": "Carteira aberta {open}. Aterrissagem projetada {land} contra um budget de {bdg}.", "fr": "Carnet ouvert {open}. Atterrissage projeté {land} face à un budget de {bdg}."},
+    "op_footer": {"pt": "Fontes: {ytd} · {fy}. Cifras em USD. O budget é carregado a nível de grupo de cliente. Margem e preço são recalculados a partir de seus componentes, nunca promediados. Documento gerado em memória; nenhuma cópia é armazenada.",
+                  "fr": "Sources : {ytd} · {fy}. Chiffres en USD. Le budget est chargé au niveau du groupe client. Marge et prix sont recalculés à partir de leurs composantes, jamais moyennés. Document généré en mémoire ; aucune copie n'est stockée."},
+    "op_export": {"pt": "Exportar one-pager", "fr": "Exporter le one-pager"},
+    "op_download": {"pt": "⬇ Baixar one-pager (HTML)", "fr": "⬇ Télécharger le one-pager (HTML)"},
+    "op_print_hint": {"pt": "Abra no navegador e use Ctrl+P → «Salvar como PDF». Já vem configurado em A4 horizontal, uma única página.",
+                      "fr": "Ouvrez-le dans le navigateur et faites Ctrl+P → « Enregistrer en PDF ». Déjà réglé en A4 paysage, une seule page."},
+    "op_preview": {"pt": "Pré-visualização", "fr": "Aperçu"},
+    # ---- scoring ----
+    "sc_weight_sales": {"pt": "Peso de vendas (%)", "fr": "Poids des ventes (%)"},
+    "sc_weight_margin": {"pt": "Peso de margem", "fr": "Poids de la marge"},
+    "sc_weight_help": {"pt": "O resto vai para margem. Padrão 60 / 40.", "fr": "Le reste va à la marge. Par défaut 60 / 40."},
+    "sc_landing_vs": {"pt": "aterrissagem {land} vs budget {bdg}", "fr": "atterrissage {land} vs budget {bdg}"},
+    "sc_margin_vs": {"pt": "margem {cur} vs budget {bdg}", "fr": "marge {cur} vs budget {bdg}"},
+    "sc_surplus": {"pt": "Projeta {v} acima do budget.", "fr": "Projette {v} au-dessus du budget."},
+    "sc_shortfall": {"pt": "Projeta {v} abaixo do budget.", "fr": "Projette {v} sous le budget."},
+    "sc_drag_sales": {"pt": "As vendas são o que puxa a pontuação para baixo.", "fr": "Ce sont les ventes qui tirent le score vers le bas."},
+    "sc_drag_margin": {"pt": "A margem é o que puxa a pontuação para baixo.", "fr": "C'est la marge qui tire le score vers le bas."},
+    "sc_drag_both": {"pt": "Vendas e margem puxam parelho.", "fr": "Ventes et marge tirent à égalité."},
+    "sc_method_projected": {"pt": "Calculado sobre a aterrissagem projetada ({index} do ano se alcança a esta altura).", "fr": "Calculé sur l'atterrissage projeté ({index} de l'année est atteint à ce stade)."},
+    "sc_method_raw": {"pt": "Sem arquivo histórico: usa-se o faturado mais a carteira, não uma aterrissagem projetada.", "fr": "Sans fichier historique : on utilise le facturé plus le carnet, pas un atterrissage projeté."},
+    "sc_no_budget": {"pt": "Não há budget no filtro atual, então não é possível calcular a pontuação. Agrupe por Cliente (grupo) ou remova o filtro de contas.",
+                     "fr": "Aucun budget dans le filtre actuel, le score ne peut donc pas être calculé. Groupez par Client (groupe) ou retirez le filtre de comptes."},
+    "sc_chart": {"pt": "Distância ao budget por {level} (0 = no budget)", "fr": "Distance au budget par {level} (0 = sur budget)"},
+    "sc_chart_note": {"pt": "Cada barra é a pontuação menos 100: à direita, projetam superar seu budget; à esquerda, ficar aquém.",
+                      "fr": "Chaque barre est le score moins 100 : à droite, projeté au-dessus du budget ; à gauche, en dessous."},
+    "sc_material_note": {"pt": "Listam-se os grupos que pesam ao menos 1% do budget total; os de budget simbólico são omitidos para não encabeçar o ranking com ruído.",
+                         "fr": "Seuls les groupes pesant au moins 1 % du budget total sont listés ; les budgets symboliques sont omis pour ne pas polluer le classement."},
+    "sc_all_portfolio": {"pt": "Portfólio completo", "fr": "Portefeuille complet"},
+    # ---- common leftovers ----
+    "col_current": {"pt": "atual", "fr": "actuel"},
+    "col_base": {"pt": "base", "fr": "base"},
+    "status_new": {"pt": "novo", "fr": "nouveau"},
+    "status_lost": {"pt": "perdido", "fr": "perdu"},
+    "status_kept": {"pt": "contínuo", "fr": "continu"},
+    "vs_budget": {"pt": "vs budget", "fr": "vs budget"},
+    "vs_base_year": {"pt": "vs {year}", "fr": "vs {year}"},
+    "footer_copyright": {"pt": "© 2026 · Software proprietário · uso licenciado. Dados processados em memória; nenhuma cópia é armazenada.",
+                         "fr": "© 2026 · Logiciel propriétaire · usage sous licence. Données traitées en mémoire ; aucune copie n'est stockée."},
+}
+
+
+def merge_into(strings: dict) -> None:
+    for key, tr in TRANSLATIONS.items():
+        strings.setdefault(key, {}).update(tr)
 '''
 
 _MODULES["core.schema"] = r'''"""Canonical mapping of the BI export into the app's internal vocabulary.
@@ -5291,19 +5691,30 @@ from core import charts, metrics as MX, theme as T, ui
 from core.i18n import t
 
 
+# Stable classification keys (never translated) so a live language switch never
+# invalidates the type filter's stored selection.
+TYPE_KEYS = ["churn", "new", "volume", "price", "cost"]
+
+
+def _type_label(key: str) -> str:
+    return {"churn": t("type_churn"), "new": t("type_new"),
+            "volume": t("type_volume"), "price": t("type_price"),
+            "cost": t("type_cost")}.get(key, key)
+
+
 def _classify(row: pd.Series) -> str:
     if row["status"] == "perdido":
-        return t("type_churn")
+        return "churn"
     if row["status"] == "nuevo":
-        return t("type_new")
+        return "new"
     q0, q1 = row.get("quantity_base", 0), row.get("quantity_cur", 0)
     p0, p1 = row.get("price_base", np.nan), row.get("price_cur", np.nan)
     c0, c1 = row.get("unit_cost_base", np.nan), row.get("unit_cost_cur", np.nan)
     vol_effect = (q1 - q0) * (p0 if p0 == p0 else 0)
     price_effect = ((p1 - p0) * q1) if (p0 == p0 and p1 == p1) else 0.0
     cost_effect = (-(c1 - c0) * q1) if (c0 == c0 and c1 == c1) else 0.0
-    ranked = {t("type_volume"): abs(vol_effect), t("type_price"): abs(price_effect),
-              t("type_cost"): abs(cost_effect)}
+    ranked = {"volume": abs(vol_effect), "price": abs(price_effect),
+              "cost": abs(cost_effect)}
     return max(ranked, key=ranked.get)
 
 
@@ -5333,8 +5744,9 @@ def render(ctx) -> None:
     ui.note(t("dev_note"))
 
     c1, c2, c3 = st.columns([2, 1, 1])
-    tipos = sorted(df["tipo"].unique().tolist())
-    sel = c1.multiselect(t("dev_type"), tipos, default=tipos, key="dev_tipo")
+    tipos = [k for k in TYPE_KEYS if k in set(df["tipo"])]
+    sel = c1.multiselect(t("dev_type"), tipos, default=tipos, key="dev_tipo",
+                         format_func=_type_label)
     dir_opts = {"all": t("dev_all"), "neg": t("dev_negative"), "pos": t("dev_positive")}
     direction = c2.selectbox(t("dev_direction"), list(dir_opts),
                              format_func=dir_opts.get, key="dev_dir")
@@ -5383,6 +5795,7 @@ def render(ctx) -> None:
         width="stretch", key="deviations_1")
 
     by_type = view.groupby("tipo")[metric_col].sum().sort_values()
+    by_type.index = [_type_label(k) for k in by_type.index]
     bridge = {
         "start": 0.0,
         "end": float(by_type.sum()),
@@ -5398,6 +5811,8 @@ def render(ctx) -> None:
             "quantity_delta_pct", "price_delta_pct", "impacto_budget"]
     cols = [c for c in cols if c in view.columns]
     table = view[cols].copy()
+    if "tipo" in table.columns:
+        table["tipo"] = table["tipo"].map(_type_label)
     impact = t("dev_net") + " USD"
     table.columns = [ctx.label_for(level), t("dev_type"),
                      f'{t("sales")} {ctx.current_year}', f'{t("sales")} {ctx.base_year}',
