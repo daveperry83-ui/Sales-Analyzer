@@ -4350,8 +4350,10 @@ import time
 
 import streamlit as st
 
+# NOTE: uploader_epoch is deliberately NOT here — it is a widget-remount counter,
+# not data. Wiping it to None would break the `+ 1` below.
 DATA_KEYS = ("ytd", "fy", "prev", "ytd_name", "fy_name", "prev_name",
-             "diagnosis", "uploader_epoch")
+             "diagnosis")
 DEFAULT_IDLE_MINUTES = 30
 
 
@@ -4418,7 +4420,7 @@ def clear_all(keep_preferences: bool = False) -> None:
 
     # Force the file_uploader widgets to remount empty, so the browser-side
     # buffer is released too rather than lingering in the widget.
-    st.session_state["uploader_epoch"] = st.session_state.get("uploader_epoch", 0) + 1
+    st.session_state["uploader_epoch"] = (st.session_state.get("uploader_epoch") or 0) + 1
     st.session_state["confirm_clear"] = False
 
     try:
