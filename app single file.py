@@ -763,6 +763,8 @@ STRINGS: dict[str, dict[str, str]] = {
                          "en": "Choose what your current-year running total is compared against. “YTD file”: the same period last year (apples to apples). “Full Year”: the whole prior year, to see how far into the year you are and project the close. Your actual sales don't change, only the comparison basis. Budget and backlog come from the active file (usually the YTD file, which carries the full annual budget)."},
     "fy_intro":        {"es": "Ventas **YTD {cur}** (acumulado al mes analizado) comparadas contra el **año completo {prior}**. El budget mostrado es el **budget anual**; el aterrizaje proyecta el cierre del año.",
                         "en": "**YTD {cur}** sales (running total to the analysed month) compared against **full-year {prior}**. The budget shown is the **annual budget**; the landing projects the year-end close."},
+    "sc_budget_src":   {"es": "Budget anual (full year) usado: {total} · fuente: {file}. El landing se mide siempre contra el budget anual, no contra un budget YTD.",
+                        "en": "Annual (full-year) budget used: {total} · source: {file}. The landing is always measured against the annual budget, never a YTD budget."},
     "dq_recon_ok":     {"es": "Total reconciliado con el export en {n} año(s): la suma de la app coincide con el gran total del pivote (diferencia ≤ {pct} %). Números confiables.",
                         "en": "Total reconciled with the export across {n} year(s): the app's sum matches the pivot grand total (difference ≤ {pct} %). Figures are trustworthy."},
     "dq_recon_gap":    {"es": "⚠️ El total no cuadra con el export en: {years}. Probablemente el pivote no está completamente expandido (profundidad despareja): algunas ramas se perdieron. Vuelve a exportar con todos los niveles expandidos.",
@@ -1324,6 +1326,8 @@ _PT_FR = {
                          "fr": "Choisissez ce à quoi votre cumul de l'année en cours est comparé. « Fichier YTD » : la même période l'an dernier (à périmètre comparable). « Full Year » : l'année complète précédente, pour voir où vous en êtes dans l'année et projeter la clôture. Vos ventes réelles ne changent pas, seule la base de comparaison. Le budget et le carnet proviennent du fichier actif (généralement le fichier YTD, qui porte le budget annuel complet)."},
     "fy_intro": {"pt": "Vendas **YTD {cur}** (acumulado até o mês analisado) comparadas contra o **ano completo {prior}**. O budget mostrado é o **budget anual**; a aterrissagem projeta o fechamento do ano.",
                  "fr": "Ventes **YTD {cur}** (cumul jusqu'au mois analysé) comparées à l'**année complète {prior}**. Le budget affiché est le **budget annuel** ; l'atterrissage projette la clôture de l'année."},
+    "sc_budget_src": {"pt": "Budget anual (full year) usado: {total} · fonte: {file}. A aterrissagem é sempre medida contra o budget anual, nunca contra um budget YTD.",
+                      "fr": "Budget annuel (full year) utilisé : {total} · source : {file}. L'atterrissage est toujours mesuré face au budget annuel, jamais un budget YTD."},
     "dq_recon_ok": {"pt": "Total reconciliado com o export em {n} ano(s): a soma do app coincide com o total geral do pivô (diferença ≤ {pct} %). Números confiáveis.",
                     "fr": "Total réconcilié avec l'export sur {n} année(s) : la somme de l'app correspond au total général du TCD (écart ≤ {pct} %). Chiffres fiables."},
     "dq_recon_gap": {"pt": "⚠️ O total não bate com o export em: {years}. O pivô provavelmente não está totalmente expandido (profundidade irregular): algumas ramificações se perderam. Exporte novamente com todos os níveis expandidos.",
@@ -4483,15 +4487,33 @@ class Context:
     # the budget columns are taken from here; sales, profit and volume always
     # stay on the active file the user selected.
     def _annual_parsed(self):
-        best, best_bdg = None, -1.0
-        for parsed in (self.ytd, self.fy):
+        """The file that carries the ANNUAL (full-year) budget.
+
+        Preference is the **Full Year** file, as the budget is a full-year target.
+        The one guard: a budget can never be *partial* — if the other file's
+        current-year budget total is materially larger, then the Full Year slot
+        holds a partial/YTD budget and the larger one is the true annual figure,
+        so that file is used instead (and the on-screen source label makes the
+        choice visible)."""
+        totals = {}
+        for name, parsed in (("fy", self.fy), ("ytd", self.ytd)):
             if parsed is None or "sales_bdg" not in parsed.tidy:
                 continue
-            b = float(parsed.tidy.loc[parsed.tidy["year"] == self.current_year,
-                                      "sales_bdg"].fillna(0).sum())
-            if b > best_bdg:
-                best, best_bdg = parsed, b
-        return best
+            totals[name] = (parsed, float(
+                parsed.tidy.loc[parsed.tidy["year"] == self.current_year,
+                                "sales_bdg"].fillna(0).sum()))
+        if not totals:
+            return None
+        fy = totals.get("fy")
+        best = max(totals.values(), key=lambda pv: pv[1])
+        # Use the Full Year file unless its budget is materially below the annual.
+        if fy is not None and fy[1] > 0 and best[1] <= fy[1] * 1.01:
+            return fy[0]
+        return best[0]
+
+    def annual_budget_source_name(self) -> str:
+        parsed = self._annual_parsed()
+        return getattr(parsed, "filename", "") or "—"
 
     def _annual_frame(self) -> pd.DataFrame | None:
         parsed = self._annual_parsed()
@@ -6228,6 +6250,8 @@ def render(ctx) -> None:
     method = (t("sc_method_projected", index=T.pct(score.index, 0))
               if score.projected else t("sc_method_raw"))
     ui.note(f"{drag} {method}")
+    st.caption(t("sc_budget_src", total=T.money_compact(score.budget),
+                 file=ctx.annual_budget_source_name()))
 
     # --- score distribution --------------------------------------------------
     material = score.material()
