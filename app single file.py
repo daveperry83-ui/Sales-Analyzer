@@ -759,6 +759,12 @@ STRINGS: dict[str, dict[str, str]] = {
     # -------------------------------------------------------------- filters --
     "comparison":      {"es": "Base de comparación", "en": "Comparison basis"},
     "data_source":     {"es": "Fuente de datos", "en": "Data source"},
+    "data_source_help": {"es": "Elige contra qué se compara tu acumulado del año actual. «Archivo YTD»: contra el mismo período del año anterior (manzanas con manzanas). «Full Year»: contra el año completo anterior, para ver cuánto del año llevas recorrido y proyectar el cierre. Tu venta actual no cambia, solo el punto de comparación. El budget anual y la cartera completa siempre se toman del archivo Full Year.",
+                         "en": "Choose what your current-year running total is compared against. “YTD file”: the same period last year (apples to apples). “Full Year”: the whole prior year, to see how far into the year you are and project the close. Your actual sales don't change, only the comparison basis. The annual budget and the complete backlog are always taken from the Full Year file."},
+    "budget_annual_note": {"es": "ℹ️ Budget anual y cartera completa tomados del archivo Full Year.",
+                           "en": "ℹ️ Annual budget and complete backlog taken from the Full Year file."},
+    "fy_intro":        {"es": "Ventas **YTD {cur}** (acumulado al mes analizado) comparadas contra el **año completo {prior}**. El budget mostrado es el **budget anual**; el aterrizaje proyecta el cierre del año.",
+                        "en": "**YTD {cur}** sales (running total to the analysed month) compared against **full-year {prior}**. The budget shown is the **annual budget**; the landing projects the year-end close."},
     "current_year":    {"es": "Año actual", "en": "Current year"},
     "base_year":       {"es": "Año base", "en": "Base year"},
     "dimensions":      {"es": "Dimensiones", "en": "Dimensions"},
@@ -1312,6 +1318,12 @@ _PT_FR = {
     "how_title": {"pt": "Como funciona", "fr": "Comment ça marche"},
     "comparison": {"pt": "Base de comparação", "fr": "Base de comparaison"},
     "data_source": {"pt": "Fonte de dados", "fr": "Source de données"},
+    "data_source_help": {"pt": "Escolha contra o que seu acumulado do ano atual é comparado. «Arquivo YTD»: contra o mesmo período do ano anterior (maçãs com maçãs). «Full Year»: contra o ano completo anterior, para ver quanto do ano já percorreu e projetar o fechamento. Sua venda atual não muda, apenas o ponto de comparação. O budget anual e a carteira completa sempre vêm do arquivo Full Year.",
+                         "fr": "Choisissez ce à quoi votre cumul de l'année en cours est comparé. « Fichier YTD » : la même période l'an dernier (à périmètre comparable). « Full Year » : l'année complète précédente, pour voir où vous en êtes dans l'année et projeter la clôture. Vos ventes réelles ne changent pas, seule la base de comparaison. Le budget annuel et le carnet complet proviennent toujours du fichier Full Year."},
+    "budget_annual_note": {"pt": "ℹ️ Budget anual e carteira completa vindos do arquivo Full Year.",
+                           "fr": "ℹ️ Budget annuel et carnet complet issus du fichier Full Year."},
+    "fy_intro": {"pt": "Vendas **YTD {cur}** (acumulado até o mês analisado) comparadas contra o **ano completo {prior}**. O budget mostrado é o **budget anual**; a aterrissagem projeta o fechamento do ano.",
+                 "fr": "Ventes **YTD {cur}** (cumul jusqu'au mois analysé) comparées à l'**année complète {prior}**. Le budget affiché est le **budget annuel** ; l'atterrissage projette la clôture de l'année."},
     "current_year": {"pt": "Ano atual", "fr": "Année en cours"},
     "base_year": {"pt": "Ano base", "fr": "Année de base"},
     "dimensions": {"pt": "Dimensões", "fr": "Dimensions"},
@@ -4376,6 +4388,8 @@ class Context:
     selected_groups: list[str] = field(default_factory=list)
     selected_accounts: list[str] = field(default_factory=list)
     prev: object | None = None
+    full: pd.DataFrame | None = None   # effective unfiltered frame (see below)
+    budget_from_fy: bool = False       # True when annual budget/backlog came from FY
 
     @property
     def has_both(self) -> bool:
@@ -4401,10 +4415,14 @@ class Context:
         return MX.apply_materiality(df, self.materiality)
 
     def unfiltered(self):
-        """The active file's full tidy frame, ignoring the sidebar filters.
+        """The effective full tidy frame, ignoring the sidebar filters.
 
         The client sheet needs the whole portfolio to rank a client inside it.
+        Uses the same current-year-from-FY overlay as the filtered frame so the
+        client sheet shows the annual budget and the complete backlog too.
         """
+        if self.full is not None:
+            return self.full
         parsed = self.ytd if self.source == "ytd" else self.fy
         return parsed.tidy if parsed is not None else self.tidy
 
@@ -4417,6 +4435,30 @@ class Context:
 
 def _pretty_level(level: str) -> str:
     return level_label(level)
+
+
+def _effective_tidy(base_tidy: pd.DataFrame, fy_tidy: pd.DataFrame | None,
+                    current_year: int) -> tuple[pd.DataFrame, bool]:
+    """Current-year band from the Full Year file, other years from the selected.
+
+    The two exports agree on current-year *sales* (both are YTD-to-the-same-month),
+    but only the Full Year file carries the **annual** budget and the **complete**
+    open-orders backlog; the YTD file carries a YTD-prorated budget and a partial
+    backlog. So for the current year the Full Year band is strictly the right
+    source, and swapping it in makes every view — overview, backlog, client sheet,
+    score — read the annual budget and the whole backlog with no per-view change.
+
+    Returns (frame, used_fy). Falls back to the base frame untouched when no Full
+    Year file is loaded, or when it has nothing for the current year.
+    """
+    if fy_tidy is None:
+        return base_tidy, False
+    fy_cur = fy_tidy[fy_tidy["year"] == current_year]
+    if fy_cur.empty:
+        return base_tidy, False
+    other = base_tidy[base_tidy["year"] != current_year]
+    merged = pd.concat([other, fy_cur], ignore_index=True)
+    return merged, True
 
 
 def build_sidebar(ytd, fy) -> Context:
@@ -4436,6 +4478,7 @@ def build_sidebar(ytd, fy) -> Context:
         t("data_source"), options, key="flt_source",
         format_func=lambda k: labels[k], horizontal=len(options) > 1,
         index=options.index(active_file) if active_file in options else 0,
+        help=t("data_source_help"),
     )
     parsed = ytd if source == "ytd" else fy
     tidy_all = parsed.tidy
@@ -4452,6 +4495,13 @@ def build_sidebar(ytd, fy) -> Context:
         index=base_opts.index(default_base) if default_base in base_opts else 0,
         key="flt_base_year",
     )
+
+    # Current-year band always from the Full Year file: annual budget + complete
+    # backlog live only there. See _effective_tidy. Everything below reads this.
+    fy_tidy = fy.tidy if fy is not None else None
+    tidy_all, used_fy = _effective_tidy(tidy_all, fy_tidy, int(current_year))
+    if used_fy and source == "ytd":
+        st.sidebar.caption(t("budget_annual_note"))
 
     # --- dimensions ---------------------------------------------------------
     st.sidebar.markdown(f"### {t('dimensions')}")
@@ -4518,6 +4568,7 @@ def build_sidebar(ytd, fy) -> Context:
     unit = st.sidebar.text_input(t("unit"), value="kg", key="flt_unit")
 
     # --- apply filters ------------------------------------------------------
+    full_effective = tidy_all      # unfiltered, current-year-from-FY overlay
     tidy = tidy_all
     if sel_groups:
         tidy = tidy[tidy["enterprise"].isin(sel_groups)]
@@ -4540,6 +4591,7 @@ def build_sidebar(ytd, fy) -> Context:
         active_metrics=active, lang=st.session_state.get("lang", "es"),
         selected_groups=sel_groups, selected_accounts=sel_accounts,
         prev=st.session_state.get("prev"),
+        full=full_effective, budget_from_fy=used_fy,
     )
 '''
 
@@ -5353,8 +5405,13 @@ def render(ctx) -> None:
         st.info(t("needs_fy"))
         return
 
+    prior_for_intro = ctx.current_year - 1
+    st.markdown(f"### {t('tab_fy')}")
+    ui.note(t("fy_intro", cur=ctx.current_year, prior=prior_for_intro))
+    st.divider()
+
     fy_years = ctx.fy.substantive_years
-    st.markdown(f"### {t('fy_trend')}")
+    st.markdown(f"#### {t('fy_trend')}")
     ui.note(t("fy_trend_note", y0=fy_years[0], y1=fy_years[-1],
               hidden=", ".join(str(y) for y in ctx.fy.partial_years) or "—"))
 
