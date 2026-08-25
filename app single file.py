@@ -416,6 +416,7 @@ TRANSLATIONS = {
     "cl_why": {"pt": "Por que se moveu {delta}", "fr": "Pourquoi il a bougé de {delta}"},
     "cl_bridge_note": {"pt": "Volume {volume} · preço {price}. O movimento é sobretudo de {cause}.", "fr": "Volume {volume} · prix {price}. Le mouvement vient surtout de {cause}."},
     "cl_products": {"pt": "O que compra", "fr": "Ce qu'il achète"},
+    "cl_products_updown": {"pt": "Produtos ↑↓ ({delta})", "fr": "Produits ↑↓ ({delta})"},
     "cl_alerts": {"pt": "Alertas desta conta", "fr": "Alertes de ce compte"},
     "cl_alert_lost": {"pt": "**{n} itens deixaram de ser comprados** ({total} no ano base): {names}.",
                       "fr": "**{n} articles ne sont plus achetés** ({total} l'année de base) : {names}."},
@@ -974,6 +975,7 @@ STRINGS: dict[str, dict[str, str]] = {
     "cl_bridge_note":  {"es": "Volumen {volume} · precio {price}. El movimiento es sobre todo de {cause}.",
                         "en": "Volume {volume} · price {price}. The move is mostly {cause}."},
     "cl_products":     {"es": "Qué compra", "en": "What it buys"},
+    "cl_products_updown": {"es": "Productos ↑↓ ({delta})", "en": "Products ↑↓ ({delta})"},
     "cl_alerts":       {"es": "Alertas de esta cuenta", "en": "Alerts for this account"},
     "cl_alert_lost":   {"es": "**{n} ítems dejaron de comprarse** ({total} el año base): {names}.",
                         "en": "**{n} items stopped being bought** ({total} in the base year): {names}."},
@@ -2809,16 +2811,26 @@ def waterfall(bridge: dict, title: str, unit: str = "$",
     Use horizontal=True when the steps are named entities (customers, products)
     rather than effects — long names are unreadable rotated onto an x axis.
     """
-    steps = {k: v for k, v in bridge["steps"].items() if abs(v) > 0.5}
-    if not steps:
-        return _empty()
-    labels = bridge.get("labels", {})
+    # An explicit sequence lets a caller lay out its own bars, including a
+    # mid-chart subtotal (measure "total"). Each entry: (label, value, measure).
+    if bridge.get("sequence"):
+        seq = bridge["sequence"]
+        names = [s[0] for s in seq]
+        values = [float(s[1]) for s in seq]
+        measure = [s[2] for s in seq]
+        text = [T.signed(v) if m == "relative" else T.money_compact(v)
+                for v, m in zip(values, measure)]
+    else:
+        steps = {k: v for k, v in bridge["steps"].items() if abs(v) > 0.5}
+        if not steps:
+            return _empty()
+        labels = bridge.get("labels", {})
 
-    names = [t("start")] + [labels.get(k, k) for k in steps] + [t("end")]
-    measure = ["absolute"] + ["relative"] * len(steps) + ["total"]
-    values = [bridge["start"]] + list(steps.values()) + [bridge["end"]]
-    text = [T.signed(v) if m == "relative" else T.money_compact(v)
-            for v, m in zip(values, measure)]
+        names = [t("start")] + [labels.get(k, k) for k in steps] + [t("end")]
+        measure = ["absolute"] + ["relative"] * len(steps) + ["total"]
+        values = [bridge["start"]] + list(steps.values()) + [bridge["end"]]
+        text = [T.signed(v) if m == "relative" else T.money_compact(v)
+                for v, m in zip(values, measure)]
 
     style = dict(
         connector=dict(line=dict(color=T.RULE, width=1)),
@@ -2968,8 +2980,8 @@ def budget_stack(
         fig.add_trace(go.Scatter(
             y=_trunc(d[label_col], 30), x=d[budget_col], mode="markers",
             name=t("budget"),
-            marker=dict(symbol="diamond-tall", size=13, color="white",
-                        line=dict(color=T.NEGATIVE, width=2)),
+            marker=dict(symbol="diamond", size=15, color=T.NEGATIVE,
+                        line=dict(color="white", width=1.5)),
             hovertemplate="%{y}<br>" + t("budget") + " %{x:$,.0f}<extra></extra>",
         ))
 
@@ -4328,10 +4340,10 @@ def build(ctx, bullets: dict[str, list[str]] | None = None) -> str:
     """Render the one-pager for the current filter. Returns an HTML string."""
     score = scoring.compute(ctx)
     cur = MX.totals(ctx.slice_year(ctx.current_year))
-    base = MX.totals(ctx.slice_year(ctx.base_year))
+    base = MX.totals(ctx.comparable_base())   # base trimmed to current months
 
     pace = score.index if score.projected else None
-    level = ctx.group_level
+    level = ctx.group_level if ctx.budget_supported() else ctx.family_level()
     cmp_df = ctx.compare(level)
 
     # --- KPI strip ---
@@ -4383,7 +4395,8 @@ def build(ctx, bullets: dict[str, list[str]] | None = None) -> str:
     downs = movers[movers["sales_delta"] < 0].head(8)
 
     # --- bridge one-liner ---
-    sb = bridges.sales_bridge(ctx.tidy, ctx.current_year, ctx.base_year)
+    sb = bridges.sales_bridge(ctx.comparable_tidy(), ctx.current_year,
+                              ctx.base_year, keys=[ctx.product_grouping()])
     vol_e, price_e = sb["steps"].get("volume", 0.0), sb["steps"].get("price", 0.0)
 
     # --- bullets ---
@@ -4426,10 +4439,13 @@ def build(ctx, bullets: dict[str, list[str]] | None = None) -> str:
 
 <div class="grid">
   <div class="card score-card">
-    <h2>{_e(t('sc_title'))}</h2>
+    <h2>{_e(t('sc_budget_title'))}</h2>
     {_gauge(score.value, score.colour)}
     <div class="band" style="color:{score.colour}">{_e(band_label)}</div>
-    <div class="splits">{_split(score.sales_score, score.margin_score, score.weights)}</div>
+    <div class="splits">{_split(score.sales_score, score.margin_score, score.weights)}
+      <div class="split"><span>{_e(t('sc_growth_title', year=ctx.base_year))}</span>
+        <b style="color:{scoring.BAND_COLOURS[scoring.band_of(score.growth_score)]}">{('—' if np.isnan(score.growth_score) else f'{score.growth_score:,.0f}')}</b></div>
+    </div>
     <div class="score-note">{_e(drag_txt)}<br/>{_e(surplus_txt)}<br/>{_e(method)}</div>
   </div>
   <div>
@@ -5313,12 +5329,17 @@ def render(ctx) -> None:
     ))
 
     # --- invoiced + backlog vs budget, group by group -----------------------
-    cmp_df = ctx.compare()
+    # The budget only attributes at certain levels (the "<GROUP> []" placeholder
+    # never lands on an individual customer account). If the chosen grouping is
+    # not budget-bearing, draw this chart at a level that is (product), so the
+    # budget marker is actually visible instead of silently dropped.
+    stack_level = ctx.group_level if ctx.budget_supported() else ctx.family_level()
+    cmp_df = ctx.compare(stack_level)
     if "sales_open_cur" in cmp_df.columns and cmp_df["sales_open_cur"].abs().sum() > 0:
         st.plotly_chart(
             charts.budget_stack(
-                cmp_df, ctx.group_level, "sales_cur", "sales_open_cur", "sales_bdg_cur",
-                t("ov_stack", level=ctx.label_for(ctx.group_level).lower()),
+                cmp_df, stack_level, "sales_cur", "sales_open_cur", "sales_bdg_cur",
+                t("ov_stack", level=ctx.label_for(stack_level).lower()),
                 top_n=ctx.top_n,
             ),
             width="stretch", key="overview_8")
@@ -5327,14 +5348,14 @@ def render(ctx) -> None:
             if "sales_bdg_cur" in cmp_df.columns else 0
         ui.note(t("ov_stack_note", open=T.money_compact(open_orders),
                   so=T.money_compact(invoiced + open_orders),
-                  n=covered, level=ctx.label_for(ctx.group_level).lower()))
+                  n=covered, level=ctx.label_for(stack_level).lower()))
 
     # --- budget gap by group ------------------------------------------------
     if "sales_vs_bdg" in cmp_df.columns and cmp_df["sales_bdg_cur"].abs().sum() > 0:
         st.plotly_chart(
             charts.diverging_bars(
-                cmp_df, ctx.group_level, "sales_vs_bdg",
-                t("ov_budget_gap", level=ctx.label_for(ctx.group_level).lower()),
+                cmp_df, stack_level, "sales_vs_bdg",
+                t("ov_budget_gap", level=ctx.label_for(stack_level).lower()),
                 top_n=ctx.top_n,
             ),
             width="stretch", key="overview_7")
@@ -5524,39 +5545,24 @@ def render(ctx) -> None:
 
     # --- why it moved -------------------------------------------------------
     delta = float(cur.get("sales") or 0) - float(base.get("sales") or 0)
-    st.markdown(f"#### {t('cl_why', delta=T.signed(delta))}")
-
     data_cmp = data
     if months and "month" in data.columns:
         data_cmp = data[(data["year"] != ctx.base_year) | data["month"].isin(months)]
-    _bk = [ctx.product_grouping()]   # match on product → less new/lost noise
-    sb = bridges.sales_bridge(data_cmp, ctx.current_year, ctx.base_year, _bk)
-    mb = bridges.margin_bridge(data_cmp, ctx.current_year, ctx.base_year, _bk)
-    c1, c2 = st.columns(2)
-    with c1:
-        st.plotly_chart(charts.waterfall(sb, t("ov_sales_bridge",
-                                              base=ctx.base_year, cur=ctx.current_year)),
-                        width="stretch", key="cl_sales_bridge")
-    with c2:
-        st.plotly_chart(charts.waterfall(mb, t("ov_margin_bridge",
-                                              base=ctx.base_year, cur=ctx.current_year)),
-                        width="stretch", key="cl_margin_bridge")
 
-    price_e = sb["steps"].get("price", 0.0)
-    vol_e = sb["steps"].get("volume", 0.0)
-    ui.note(t("cl_bridge_note", volume=T.signed(vol_e), price=T.signed(price_e),
-              cause=t("cause_price") if abs(price_e) > abs(vol_e) else t("type_volume").lower()))
-
-    # --- what it buys -------------------------------------------------------
-    st.markdown(f"#### {t('cl_products')}")
-    prod = MX.compare(data_cmp, "product_family", ctx.current_year, ctx.base_year,
+    # --- top products up / down ---------------------------------------------
+    # A price/volume bridge is empty for the many clients that are "all new
+    # business", so the client's story is told with its products that grew and
+    # shrank — the same rich view as the Products tab.
+    plevel = ctx.family_level()
+    st.markdown(f"#### {t('cl_products_updown', delta=T.signed(delta))}")
+    prod = MX.compare(data_cmp, plevel, ctx.current_year, ctx.base_year,
                       include_open=ctx.include_open)
     prod = MX.apply_materiality(prod, ctx.materiality)
 
     p1, p2 = st.columns(2)
     with p1:
         st.plotly_chart(
-            charts.diverging_bars(prod, "product_family", "sales_delta",
+            charts.diverging_bars(prod, plevel, "sales_delta",
                                   t("dim_top_var"), top_n=ctx.top_n),
             width="stretch", key="cl_prod_bars",
         )
@@ -5564,14 +5570,14 @@ def render(ctx) -> None:
         plot = prod.copy()
         plot["margin_delta_pp"] = plot.get("margin_pct_delta_pp", 0)
         st.plotly_chart(
-            charts.treemap(plot, ["product_family"], "sales_cur", "margin_delta_pp",
+            charts.treemap(plot, [plevel], "sales_cur", "margin_delta_pp",
                            t("dim_treemap")),
             width="stretch", key="cl_treemap",
         )
 
     if "sales_open_cur" in prod.columns and prod["sales_open_cur"].abs().sum() > 0:
         st.plotly_chart(
-            charts.budget_stack(prod, "product_family", "sales_cur", "sales_open_cur",
+            charts.budget_stack(prod, plevel, "sales_cur", "sales_open_cur",
                                 "sales_bdg_cur", t("cl_stack"), top_n=ctx.top_n),
             width="stretch", key="cl_stack")
 
@@ -5731,17 +5737,17 @@ def render(ctx) -> None:
           None, True)]),
         unsafe_allow_html=True)
 
-    # --- invoiced -> backlog -> budget bridge --------------------------------
-    bridge = {
-        "start": invoiced,
-        "end": budget if budget > 0 else sold_open,
-        "steps": {"open": open_sales},
-        "labels": {"open": t("open_orders")},
-    }
-    if budget > 0:
-        bridge["steps"]["left"] = remaining
-        bridge["labels"]["left"] = t("missing")
-    st.plotly_chart(charts.waterfall(bridge, t("bl_bridge")), width="stretch", key="backlog_1")
+    # --- invoiced + backlog = sold&open, then the gap to budget --------------
+    # Facturado → +Cartera → =Vendido+Cartera (subtotal) → Faltante (last bar).
+    seq = [
+        (t("invoiced"), invoiced, "absolute"),
+        (t("open_orders"), open_sales, "relative"),
+        (t("sold_open"), sold_open, "total"),
+    ]
+    if budget > 0 and remaining > 0:
+        seq.append((t("missing"), remaining, "relative"))
+    st.plotly_chart(charts.waterfall({"sequence": seq}, t("bl_bridge")),
+                    width="stretch", key="backlog_1")
     if budget > 0:
         ui.note(t(
             "bl_bridge_note",
@@ -6952,7 +6958,6 @@ def main() -> None:
         f"🏷️ {t('tab_client')}",
         f"📦 {t('tab_backlog')}",
         f"📈 {t('tab_evolution')}",
-        f"📐 {t('tab_fy')}",
         f"👥 {t('tab_customers')}",
         f"🧪 {t('tab_products')}",
         f"🎯 {t('tab_deviations')}",
@@ -6969,18 +6974,16 @@ def main() -> None:
     with tabs[3]:
         evolution.render(ctx)
     with tabs[4]:
-        fullyear.render(ctx)
-    with tabs[5]:
         dimension.render(ctx, mode="customer")
-    with tabs[6]:
+    with tabs[5]:
         dimension.render(ctx, mode="product")
-    with tabs[7]:
+    with tabs[6]:
         deviations.render(ctx)
-    with tabs[8]:
+    with tabs[7]:
         strategy.render(ctx)
-    with tabs[9]:
+    with tabs[8]:
         onepager.render(ctx)
-    with tabs[10]:
+    with tabs[9]:
         dataquality.render(ctx)
 
     st.divider()
@@ -6989,3 +6992,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    
