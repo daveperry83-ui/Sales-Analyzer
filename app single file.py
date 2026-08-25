@@ -2006,7 +2006,10 @@ def _group_marker_col(body: pd.DataFrame, dim_cols: dict[str, int]) -> int | Non
         return None
     top = dim_cols[order[0]]
     deeper = [c for c in dim_cols.values() if c > top]
-    stop = min(deeper) if deeper else top + 3
+    # Include the first deeper dimension column: when dimensions are adjacent
+    # (no helper column between them, e.g. Customer|Product) the top-level
+    # "Total" token lands on that next column itself.
+    stop = (min(deeper) + 1) if deeper else top + 3
     for col in range(top + 1, stop):
         if col in body.columns and _clean_dimension(body[col]).map(is_subtotal).fillna(False).any():
             return col
@@ -2161,10 +2164,19 @@ def parse_export(data: bytes, filename: str = "") -> ParsedExport:
     subtotal_mask = leaf_values.map(is_subtotal).fillna(False)
     leaf_mask = leaf_values.notna() & ~subtotal_mask
 
-    # Any row carrying a subtotal token in *any* dimension is an aggregate too.
-    for canon, col in dim_cols.items():
-        marks = _clean_dimension(body[col]).map(is_subtotal).fillna(False)
-        leaf_mask &= ~marks
+    # Any row carrying a subtotal token in *any* column left of the metrics is an
+    # aggregate — this includes breakdown dimensions the app doesn't model
+    # (By Month, Ship-To Country, Make/Trade). Pruning only the recognised
+    # dimensions would keep every monthly/country "Total" row and inflate the
+    # figures several-fold. The metrics begin at the first matched metric column,
+    # so everything to its left is dimensional.
+    metric_positions = [c for cols in blocks.values() for c in cols.values()]
+    first_metric_col = min(metric_positions) if metric_positions else len(body.columns)
+    prune_cols = sorted(set(dim_cols.values()) | set(range(first_metric_col)))
+    for col in prune_cols:
+        if col in body.columns:
+            marks = _clean_dimension(body[col]).map(is_subtotal).fillna(False)
+            leaf_mask &= ~marks
 
     if not leaf_mask.any():
         warnings.append(
