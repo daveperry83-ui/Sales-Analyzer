@@ -3824,17 +3824,24 @@ def _seasonality(ctx) -> tuple[float, bool]:
 def _group_scores(ctx, index: float, projected: bool,
                   weights: tuple[float, float]) -> pd.DataFrame | None:
     """Per-group hybrid score, so the worst offenders are nameable."""
+    level = ctx.top_level()          # customer when there is no enterprise group
     block = ctx.slice_year(ctx.current_year)
-    grouped = MX.aggregate(block, LEVEL)
+    grouped = MX.aggregate(block, level)
     # Override the per-group budget with the **annual** budget (see Context).
-    abg = ctx.annual_budget_by(LEVEL)
+    abg = ctx.annual_budget_by(level)
     if abg is not None:
-        gi = grouped.set_index(LEVEL)
+        gi = grouped.set_index(level)
         for col in ("sales_bdg", "profit_bdg", "qty_bdg", "margin_bdg_pct"):
             if col in abg.columns:
                 gi[col] = abg[col].reindex(gi.index)
         grouped = gi.reset_index()
-    grouped = grouped[grouped["sales_bdg"].fillna(0) > 0].copy()
+    # Require BOTH sales and budget on the group: on files where the budget sits
+    # on a "<GROUP> []" placeholder that shares the enterprise key with real
+    # sales, both land together; on files where the budget can't be attributed to
+    # the grouping (placeholder ≠ real account), no group qualifies and the
+    # breakdown is suppressed rather than filled with empty placeholder rows.
+    grouped = grouped[(grouped["sales_bdg"].fillna(0) > 0)
+                      & (grouped["sales"].fillna(0) > 0)].copy()
     if grouped.empty:
         return None
 
@@ -3842,12 +3849,12 @@ def _group_scores(ctx, index: float, projected: bool,
     if ctx.has_both:
         try:
             fc = landing_forecast(ctx.ytd.tidy, ctx.fy.tidy,
-                                  ctx.current_year, ctx.current_year - 1, LEVEL)
+                                  ctx.current_year, ctx.current_year - 1, level)
             landing_by_group = fc["landing"]
         except Exception:
             landing_by_group = None
 
-    grouped = grouped.set_index(LEVEL)
+    grouped = grouped.set_index(level)
     invoiced = grouped["sales"].fillna(0.0)
     backlog = grouped["sales_open"].fillna(0.0)
     if landing_by_group is not None:
@@ -4730,15 +4737,30 @@ class Context:
     # When the file carries a By Month breakdown, a YTD year (Jan–Aug) must be
     # compared against the SAME months of the base year, not its full 12 months,
     # or the year-on-year delta is negative until December by construction.
+    def has_dim(self, name: str) -> bool:
+        """True when a dimension column carries real values (not all 'N/D')."""
+        col = self.tidy.get(name)
+        return col is not None and (col.astype("string") != "N/D").any()
+
     def top_level(self) -> str:
         """The shallowest grouping level that actually carries data: 'enterprise'
-        when the file has a real group column, otherwise 'customer'. Keeps the
-        client sheet and default grouping working on files without an Enterprise
-        dimension (e.g. a monthly export keyed on Customer)."""
-        ent = self.tidy.get("enterprise")
-        if ent is not None and (ent.astype("string") != "N/D").any():
-            return "enterprise"
-        return "customer"
+        when the file has a real group column, otherwise 'customer'."""
+        return "enterprise" if self.has_dim("enterprise") else "customer"
+
+    def family_level(self) -> str:
+        """Product grouping for the Products tab and the client breakdown:
+        'product_family' when present, else the individual 'product', else the
+        item code. So a file without a Product Family column still groups by its
+        227 real products instead of collapsing into one 'N/D' bucket."""
+        if self.has_dim("product_family"):
+            return "product_family"
+        return "product" if self.has_dim("product") else "item_code"
+
+    def product_grouping(self) -> str:
+        """Most stable product identifier for the price/volume bridges. Product
+        (not item code, and never keyed with customer) so a product changing
+        item code or customer between years is not miscounted as new/lost."""
+        return "product" if self.has_dim("product") else "item_code"
 
     @property
     def current_months(self) -> set:
@@ -5262,8 +5284,9 @@ def render(ctx) -> None:
 
     # --- bridges ------------------------------------------------------------
     cmp_tidy = ctx.comparable_tidy()   # base year trimmed to current months
-    sb = bridges.sales_bridge(cmp_tidy, ctx.current_year, ctx.base_year)
-    mb = bridges.margin_bridge(cmp_tidy, ctx.current_year, ctx.base_year)
+    _bk = [ctx.product_grouping()]     # match on product → less new/lost noise
+    sb = bridges.sales_bridge(cmp_tidy, ctx.current_year, ctx.base_year, keys=_bk)
+    mb = bridges.margin_bridge(cmp_tidy, ctx.current_year, ctx.base_year, keys=_bk)
 
     st.plotly_chart(
         charts.waterfall(sb, t("ov_sales_bridge", base=ctx.base_year, cur=ctx.current_year)),
@@ -5506,10 +5529,9 @@ def render(ctx) -> None:
     data_cmp = data
     if months and "month" in data.columns:
         data_cmp = data[(data["year"] != ctx.base_year) | data["month"].isin(months)]
-    sb = bridges.sales_bridge(data_cmp, ctx.current_year, ctx.base_year,
-                              ["customer", "item_code"])
-    mb = bridges.margin_bridge(data_cmp, ctx.current_year, ctx.base_year,
-                               ["customer", "item_code"])
+    _bk = [ctx.product_grouping()]   # match on product → less new/lost noise
+    sb = bridges.sales_bridge(data_cmp, ctx.current_year, ctx.base_year, _bk)
+    mb = bridges.margin_bridge(data_cmp, ctx.current_year, ctx.base_year, _bk)
     c1, c2 = st.columns(2)
     with c1:
         st.plotly_chart(charts.waterfall(sb, t("ov_sales_bridge",
@@ -6066,8 +6088,11 @@ def render(ctx, mode: str = "customer") -> None:
     level = ctx.group_level
     if mode == "customer" and level not in ("customer", "enterprise"):
         level = "customer"
-    if mode == "product" and level not in ("product", "product_family", "item_code"):
-        level = "product_family"
+    if mode == "product":
+        # Use the chosen product level only if it carries data; otherwise fall
+        # back (product_family → product → item_code) so the tab is never empty.
+        if level not in ("product", "product_family", "item_code") or not ctx.has_dim(level):
+            level = ctx.family_level()
 
     df = ctx.compare(level)
     if df.empty:
