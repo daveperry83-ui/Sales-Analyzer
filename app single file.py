@@ -763,6 +763,10 @@ STRINGS: dict[str, dict[str, str]] = {
                          "en": "Choose what your current-year running total is compared against. “YTD file”: the same period last year (apples to apples). “Full Year”: the whole prior year, to see how far into the year you are and project the close. Your actual sales don't change, only the comparison basis. Budget and backlog come from the active file (usually the YTD file, which carries the full annual budget)."},
     "fy_intro":        {"es": "Ventas **YTD {cur}** (acumulado al mes analizado) comparadas contra el **año completo {prior}**. El budget mostrado es el **budget anual**; el aterrizaje proyecta el cierre del año.",
                         "en": "**YTD {cur}** sales (running total to the analysed month) compared against **full-year {prior}**. The budget shown is the **annual budget**; the landing projects the year-end close."},
+    "dq_recon_ok":     {"es": "Total reconciliado con el export en {n} año(s): la suma de la app coincide con el gran total del pivote (diferencia ≤ {pct} %). Números confiables.",
+                        "en": "Total reconciled with the export across {n} year(s): the app's sum matches the pivot grand total (difference ≤ {pct} %). Figures are trustworthy."},
+    "dq_recon_gap":    {"es": "⚠️ El total no cuadra con el export en: {years}. Probablemente el pivote no está completamente expandido (profundidad despareja): algunas ramas se perdieron. Vuelve a exportar con todos los niveles expandidos.",
+                        "en": "⚠️ The total does not match the export for: {years}. The pivot is likely not fully expanded (uneven depth): some branches were dropped. Re-export with all levels expanded."},
     "current_year":    {"es": "Año actual", "en": "Current year"},
     "base_year":       {"es": "Año base", "en": "Base year"},
     "dimensions":      {"es": "Dimensiones", "en": "Dimensions"},
@@ -1320,6 +1324,10 @@ _PT_FR = {
                          "fr": "Choisissez ce à quoi votre cumul de l'année en cours est comparé. « Fichier YTD » : la même période l'an dernier (à périmètre comparable). « Full Year » : l'année complète précédente, pour voir où vous en êtes dans l'année et projeter la clôture. Vos ventes réelles ne changent pas, seule la base de comparaison. Le budget et le carnet proviennent du fichier actif (généralement le fichier YTD, qui porte le budget annuel complet)."},
     "fy_intro": {"pt": "Vendas **YTD {cur}** (acumulado até o mês analisado) comparadas contra o **ano completo {prior}**. O budget mostrado é o **budget anual**; a aterrissagem projeta o fechamento do ano.",
                  "fr": "Ventes **YTD {cur}** (cumul jusqu'au mois analysé) comparées à l'**année complète {prior}**. Le budget affiché est le **budget annuel** ; l'atterrissage projette la clôture de l'année."},
+    "dq_recon_ok": {"pt": "Total reconciliado com o export em {n} ano(s): a soma do app coincide com o total geral do pivô (diferença ≤ {pct} %). Números confiáveis.",
+                    "fr": "Total réconcilié avec l'export sur {n} année(s) : la somme de l'app correspond au total général du TCD (écart ≤ {pct} %). Chiffres fiables."},
+    "dq_recon_gap": {"pt": "⚠️ O total não bate com o export em: {years}. O pivô provavelmente não está totalmente expandido (profundidade irregular): algumas ramificações se perderam. Exporte novamente com todos os níveis expandidos.",
+                     "fr": "⚠️ Le total ne correspond pas à l'export pour : {years}. Le TCD n'est probablement pas entièrement développé (profondeur inégale) : certaines branches ont été perdues. Réexportez avec tous les niveaux développés."},
     "current_year": {"pt": "Ano atual", "fr": "Année en cours"},
     "base_year": {"pt": "Ano base", "fr": "Année de base"},
     "dimensions": {"pt": "Dimensões", "fr": "Dimensions"},
@@ -1822,6 +1830,7 @@ class ParsedExport:
     warnings: list[str] = field(default_factory=list)
     year_totals: pd.DataFrame | None = None
     profile: dict = field(default_factory=dict)   # what the parser recognised
+    reconciliation: dict = field(default_factory=dict)  # per-year leaf vs export total
 
     @property
     def substantive_years(self) -> list[int]:
@@ -1975,6 +1984,55 @@ def _clean_dimension(series: pd.Series) -> pd.Series:
 def _strip_code(series: pd.Series) -> pd.Series:
     """'ADITMAQ [4018]' -> 'ADITMAQ'."""
     return series.str.replace(r"\s*\[[^\]]*\]\s*$", "", regex=True).str.strip()
+
+
+# --------------------------------------------------------------------------- #
+# Reconciliation
+# --------------------------------------------------------------------------- #
+def _group_marker_col(body: pd.DataFrame, dim_cols: dict[str, int]) -> int | None:
+    """The column that flags a top-level group subtotal with a 'Total' token.
+
+    In the pivot, the group total sits on the column immediately after the top
+    dimension (e.g. 'Enterprise W/ Code'), which reads 'Total' on that row. We
+    scan from just after the top dimension up to the next real dimension and take
+    the first column that actually carries subtotal tokens.
+    """
+    order = [d for d in DIMENSIONS if d in dim_cols]
+    if not order:
+        return None
+    top = dim_cols[order[0]]
+    deeper = [c for c in dim_cols.values() if c > top]
+    stop = min(deeper) if deeper else top + 3
+    for col in range(top + 1, stop):
+        if col in body.columns and _clean_dimension(body[col]).map(is_subtotal).fillna(False).any():
+            return col
+    return None
+
+
+def _reconcile(body: pd.DataFrame, dim_cols: dict[str, int],
+               blocks: dict[int, dict[str, int]], year_totals: pd.DataFrame) -> dict:
+    """Per-year: leaf sum (what the app uses) vs the export's own group total."""
+    marker = _group_marker_col(body, dim_cols)
+    if marker is None:
+        return {}
+    grp_mask = _clean_dimension(body[marker]).map(is_subtotal).fillna(False)
+    if not grp_mask.any():
+        return {}
+    out: dict = {}
+    for year, cols in blocks.items():
+        if "sales" not in cols:
+            continue
+        export_total = float(_to_number(body[cols["sales"]])[grp_mask].sum())
+        leaf_total = float(year_totals.loc[year, "sales"]) if year in year_totals.index else 0.0
+        if abs(export_total) < 1.0:
+            continue
+        out[int(year)] = {
+            "leaf": leaf_total,
+            "export": export_total,
+            "diff": leaf_total - export_total,
+            "diff_pct": abs(leaf_total - export_total) / abs(export_total),
+        }
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -2169,6 +2227,15 @@ def parse_export(data: bytes, filename: str = "") -> ParsedExport:
         .sum(min_count=1).fillna(0.0)
     )
 
+    # --- reconciliation: leaf sum vs the export's own group subtotals ---------
+    # A partial/uneven pivot expansion would drop the collapsed branches and make
+    # the leaf sum fall short of the export's real total. We recover an
+    # INDEPENDENT total from the top-level subtotal rows (the ones the pivot
+    # prints per group) and compare, so any shortfall is flagged instead of
+    # silently trusted. The group-subtotal row is the one whose column right
+    # after the enterprise dimension carries a "Total" token.
+    reconciliation = _reconcile(body, dim_cols, blocks, year_totals)
+
     parsed = ParsedExport(
         tidy=tidy,
         years=sorted(blocks),
@@ -2178,6 +2245,7 @@ def parse_export(data: bytes, filename: str = "") -> ParsedExport:
         warnings=warnings,
         year_totals=year_totals,
         profile=profile,
+        reconciliation=reconciliation,
     )
 
     pruned = n_raw - parsed.n_leaf_rows
@@ -3620,6 +3688,14 @@ def _group_scores(ctx, index: float, projected: bool,
     """Per-group hybrid score, so the worst offenders are nameable."""
     block = ctx.slice_year(ctx.current_year)
     grouped = MX.aggregate(block, LEVEL)
+    # Override the per-group budget with the **annual** budget (see Context).
+    abg = ctx.annual_budget_by(LEVEL)
+    if abg is not None:
+        gi = grouped.set_index(LEVEL)
+        for col in ("sales_bdg", "profit_bdg", "qty_bdg", "margin_bdg_pct"):
+            if col in abg.columns:
+                gi[col] = abg[col].reindex(gi.index)
+        grouped = gi.reset_index()
     grouped = grouped[grouped["sales_bdg"].fillna(0) > 0].copy()
     if grouped.empty:
         return None
@@ -3668,11 +3744,15 @@ def _group_scores(ctx, index: float, projected: bool,
 def compute(ctx, weights: tuple[float, float] = DEFAULT_WEIGHTS) -> Score:
     """Score the active filter. Uses both files when available."""
     cur = MX.totals(ctx.slice_year(ctx.current_year))
+    ann = ctx.annual_budget_totals()
     ytd = float(cur.get("sales") or 0.0)
     backlog = float(cur.get("sales_open") or 0.0)
-    budget = float(cur.get("sales_bdg") or 0.0)
+    # Budget is the ANNUAL (full-year) budget — the landing is a full-year
+    # projection, so it must be measured against the full-year target, never a
+    # YTD / to-date budget.
+    budget = float(ann.get("sales_bdg") or 0.0)
     margin = float(cur.get("margin_pct") or np.nan)
-    margin_budget = float(cur.get("margin_bdg_pct") or np.nan)
+    margin_budget = float(ann.get("margin_bdg_pct") or np.nan)
 
     index, projected = _seasonality(ctx)
     landing = ytd / index if projected and index > 0 else ytd
@@ -3690,7 +3770,7 @@ def compute(ctx, weights: tuple[float, float] = DEFAULT_WEIGHTS) -> Score:
         ("quantity", "quantity", "qty_bdg", "qty_open"),
     ):
         v = float(cur.get(value_col) or 0.0)
-        b = float(cur.get(budget_col) or 0.0)
+        b = float(ann.get(budget_col) or 0.0)   # annual budget component
         o = float(cur.get(open_col) or 0.0)
         land = max(v / index if projected and index > 0 else v, v + o)
         components[key] = {
@@ -4357,6 +4437,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -4383,13 +4464,67 @@ class Context:
     lang: str = "es"
     selected_groups: list[str] = field(default_factory=list)
     selected_accounts: list[str] = field(default_factory=list)
+    selected_families: list[str] = field(default_factory=list)
     prev: object | None = None
     full: pd.DataFrame | None = None   # effective unfiltered frame (see below)
-    budget_from_fy: bool = False       # True when annual budget/backlog came from FY
+    budget_from_fy: bool = False       # reserved
 
     @property
     def has_both(self) -> bool:
         return self.ytd is not None and self.fy is not None
+
+    # ---------------------------------------------------------------- budget --
+    # The **annual** (full-year) budget is the figure the year is measured
+    # against — the overview's attainment and the score's landing both compare to
+    # it. Between the two uploaded files, the annual budget is the *larger*
+    # current-year budget total: a YTD / to-date budget is always a fraction of
+    # the annual, never more. Sourcing it this way is independent of which file
+    # sits in which slot, so it stays correct however the user loads them. Only
+    # the budget columns are taken from here; sales, profit and volume always
+    # stay on the active file the user selected.
+    def _annual_parsed(self):
+        best, best_bdg = None, -1.0
+        for parsed in (self.ytd, self.fy):
+            if parsed is None or "sales_bdg" not in parsed.tidy:
+                continue
+            b = float(parsed.tidy.loc[parsed.tidy["year"] == self.current_year,
+                                      "sales_bdg"].fillna(0).sum())
+            if b > best_bdg:
+                best, best_bdg = parsed, b
+        return best
+
+    def _annual_frame(self) -> pd.DataFrame | None:
+        parsed = self._annual_parsed()
+        if parsed is None:
+            return None
+        df = parsed.tidy[parsed.tidy["year"] == self.current_year]
+        if self.selected_groups:
+            df = df[df["enterprise"].isin(self.selected_groups)]
+        if self.selected_accounts:
+            df = df[df["customer"].isin(self.selected_accounts) | df["is_group_row"]]
+        if self.selected_families:
+            df = df[df["product_family"].isin(self.selected_families)]
+        return df
+
+    def annual_budget_totals(self) -> dict:
+        df = self._annual_frame()
+        if df is None or df.empty:
+            return {"sales_bdg": 0.0, "profit_bdg": 0.0, "qty_bdg": 0.0,
+                    "margin_bdg_pct": float("nan")}
+        s = float(df["sales_bdg"].fillna(0).sum())
+        pr = float(df["profit_bdg"].fillna(0).sum())
+        q = float(df["qty_bdg"].fillna(0).sum())
+        return {"sales_bdg": s, "profit_bdg": pr, "qty_bdg": q,
+                "margin_bdg_pct": (pr / s) if s else float("nan")}
+
+    def annual_budget_by(self, level: str) -> pd.DataFrame | None:
+        df = self._annual_frame()
+        if df is None or df.empty or level not in df.columns:
+            return None
+        g = df.groupby(level, dropna=False)[["sales_bdg", "profit_bdg", "qty_bdg"]] \
+            .sum(min_count=1)
+        g["margin_bdg_pct"] = g["profit_bdg"] / g["sales_bdg"].replace(0, np.nan)
+        return g
 
     def budget_supported(self, level: str | None = None) -> bool:
         """Budget is loaded against a placeholder customer, so it only lands
@@ -4408,7 +4543,33 @@ class Context:
         if not self.budget_supported(level):
             df = df.drop(columns=[c for c in df.columns
                                   if "bdg" in c or c == "sales_vs_bdg"], errors="ignore")
+        else:
+            df = self._apply_annual_budget(df, level)
         return MX.apply_materiality(df, self.materiality)
+
+    def _apply_annual_budget(self, df: pd.DataFrame, level: str) -> pd.DataFrame:
+        """Replace the active file's current-year budget with the annual budget
+        and re-derive everything that hangs off it, so every budget comparison
+        (gap, attainment, budgeted margin) is against the full-year target."""
+        abg = self.annual_budget_by(level)
+        if abg is None or level not in df.columns:
+            return df
+        m = abg.reindex(df[level].values)
+        for src_col, dst_col in (("sales_bdg", "sales_bdg_cur"),
+                                 ("profit_bdg", "profit_bdg_cur"),
+                                 ("qty_bdg", "qty_bdg_cur")):
+            if dst_col in df.columns:
+                df[dst_col] = m[src_col].to_numpy()
+        if "sales_bdg_cur" in df.columns:
+            df["sales_vs_bdg"] = df["sales_cur"] - df["sales_bdg_cur"]
+            df["sales_bdg_attain"] = np.where(df["sales_bdg_cur"] != 0,
+                                              df["sales_cur"] / df["sales_bdg_cur"], np.nan)
+        if "profit_bdg_cur" in df.columns:
+            df["profit_vs_bdg"] = df["profit_cur"] - df["profit_bdg_cur"]
+        if {"profit_bdg_cur", "sales_bdg_cur"} <= set(df.columns):
+            df["margin_bdg_pct"] = np.where(df["sales_bdg_cur"] != 0,
+                                            df["profit_bdg_cur"] / df["sales_bdg_cur"], np.nan)
+        return df
 
     def unfiltered(self):
         """The effective full tidy frame, ignoring the sidebar filters.
@@ -4562,6 +4723,7 @@ def build_sidebar(ytd, fy) -> Context:
         include_open=include_open, materiality=float(materiality), unit=unit or "kg",
         active_metrics=active, lang=st.session_state.get("lang", "es"),
         selected_groups=sel_groups, selected_accounts=sel_accounts,
+        selected_families=sel_families,
         prev=st.session_state.get("prev"),
         full=full_effective, budget_from_fy=used_fy,
     )
@@ -4743,6 +4905,7 @@ def render(ctx) -> None:
 
     cur = MX.totals(cur_slice)
     base = MX.totals(base_slice)
+    ann = ctx.annual_budget_totals()   # annual (full-year) budget for the bars
     # Keep the invoiced-only figures: the budget bars always split invoiced from
     # backlog, whatever the sidebar toggle does to the KPI cards.
     invoiced = float(cur.get("sales") or 0)
@@ -4770,7 +4933,7 @@ def render(ctx) -> None:
                             t("vs_base_year", year=ctx.base_year), budget=cur)
     # Fold the standalone open-orders figure into the KPI row (with its budget-gap
     # coverage) instead of a lonely card on its own line further down.
-    _budget = float(cur.get("sales_bdg") or 0)
+    _budget = float(ann.get("sales_bdg") or 0)
     if open_sales and "sales_open" not in ctx.active_metrics:
         _gap = _budget - invoiced
         _cover = open_sales / _gap if _gap > 0 else np.nan
@@ -4796,7 +4959,7 @@ def render(ctx) -> None:
             pace = None
     pace_share = pace.get("expected_share") if pace else None
 
-    budget = float(cur.get("sales_bdg") or 0)
+    budget = float(ann.get("sales_bdg") or 0)
     left, right = st.columns(2)
     with left:
         st.plotly_chart(
@@ -4807,13 +4970,13 @@ def render(ctx) -> None:
             ),
             width="stretch", key="overview_1")
         st.plotly_chart(
-            charts.progress_bar(invoiced_profit, float(cur.get("profit_bdg") or 0),
+            charts.progress_bar(invoiced_profit, float(ann.get("profit_bdg") or 0),
                                 pace=pace_share, backlog=open_profit,
                                 title=t("ov_profit_bar")),
             width="stretch", key="overview_2")
     with right:
         st.plotly_chart(
-            charts.progress_bar(invoiced_qty, float(cur.get("qty_bdg") or 0),
+            charts.progress_bar(invoiced_qty, float(ann.get("qty_bdg") or 0),
                                 pace=pace_share, backlog=open_qty,
                                 title=t("ov_qty_bar"),
                                 formatter=lambda v: T.qty(v, ctx.unit)),
@@ -6137,8 +6300,10 @@ NOTES_ES = (
     "total se deriva como ventas − profit.\n"
     "- **Margen y precio nunca se promedian.** Se recalculan como Σ profit ÷ Σ ventas "
     "y Σ ventas ÷ Σ volumen.\n"
-    "- **El budget del archivo YTD es anual**, no prorrateado al período: el avance se "
-    "lee contra el año completo y la barra lleva un marcador de ritmo esperado.\n"
+    "- **El avance y el score se miden contra el budget ANUAL (full year).** Cuando hay "
+    "dos archivos con budgets distintos, se toma el mayor del año en curso (un budget "
+    "parcial/YTD siempre es menor que el anual), sin importar en qué casilla esté cada "
+    "archivo.\n"
     "- **El budget se carga contra un cliente marcador `<GRUPO> []`**, no contra la "
     "cuenta real: se atribuye a nivel Cliente (grupo) y por producto, y queda "
     "desactivado si agrupas por cuenta individual.\n"
@@ -6150,8 +6315,10 @@ NOTES_EN = (
     "is derived as sales − profit.\n"
     "- **Margin and price are never averaged.** They are recomputed as Σ profit ÷ Σ sales "
     "and Σ sales ÷ Σ volume.\n"
-    "- **The YTD file's budget is annual**, not prorated to the period: attainment reads "
-    "against the full year and the bar carries an expected-pace marker.\n"
+    "- **Attainment and the score are measured against the ANNUAL (full-year) budget.** "
+    "When the two files carry different budgets, the larger current-year budget is used "
+    "(a partial/YTD budget is always smaller than the annual one), regardless of which "
+    "slot each file sits in.\n"
     "- **Budget is loaded against a placeholder customer `<GROUP> []`**, not the real "
     "account: it is attributed at customer-group and product level, and disabled when "
     "grouping by individual account.\n"
@@ -6184,6 +6351,20 @@ def _file_panel(parsed, title: str) -> None:
                        pct_cols=[t("margin")], qty_cols=[t("volume")]),
         width="stretch",
     )
+
+    # --- reconciliation: parsed leaf total vs the export's own group total ----
+    recon = parsed.reconciliation or {}
+    if recon:
+        TOL = 0.01
+        bad = {y: r for y, r in recon.items() if r["diff_pct"] > TOL}
+        if not bad:
+            worst = max(r["diff_pct"] for r in recon.values())
+            st.success(t("dq_recon_ok", n=len(recon), pct=f"{worst*100:.1f}"), icon="✅")
+        else:
+            years = ", ".join(
+                f"{y} ({T.money_compact(r['diff'])}, {r['diff_pct']*100:.1f}%)"
+                for y, r in sorted(bad.items()))
+            st.warning(t("dq_recon_gap", years=years), icon="⚠️")
 
     profile = parsed.profile or {}
     with st.expander(t("dq_recognised")):
