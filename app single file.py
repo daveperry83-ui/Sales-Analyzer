@@ -714,6 +714,13 @@ STRINGS: dict[str, dict[str, str]] = {
 
     # --------------------------------------------------------------- upload --
     "upload_title":    {"es": "Cargar archivos", "en": "Load files"},
+    "upload_main":     {"es": "Archivo principal", "en": "Main file"},
+    "upload_main_short": {"es": "Principal", "en": "Main"},
+    "upload_main_help": {"es": "Sube aquí tu export del BI. Si el archivo incluye el desglose por mes (columna «By Month») basta con este: la app deriva el YTD, el budget anual, la cartera y el aterrizaje proyectado de un solo archivo.",
+                        "en": "Upload your BI export here. If it includes the monthly breakdown (a “By Month” column) this one file is enough: the app derives YTD, annual budget, backlog and the projected landing from it alone."},
+    "upload_single_hint": {"es": "Con un archivo mensual, este es el único que necesitas. Los de abajo son opcionales.",
+                        "en": "With a monthly file, this is the only one you need. The ones below are optional."},
+    "upload_more":     {"es": "Archivos adicionales (opcional)", "en": "Additional files (optional)"},
     "upload_ytd":      {"es": "Archivo YTD (año actual vs año anterior)",
                         "en": "YTD file (current vs prior year)"},
     "upload_fy":       {"es": "Archivo histórico / Full Year (multi-año)",
@@ -761,6 +768,8 @@ STRINGS: dict[str, dict[str, str]] = {
     "data_source":     {"es": "Fuente de datos", "en": "Data source"},
     "data_source_help": {"es": "Elige contra qué se compara tu acumulado del año actual. «Archivo YTD»: contra el mismo período del año anterior (manzanas con manzanas). «Full Year»: contra el año completo anterior, para ver cuánto del año llevas recorrido y proyectar el cierre. Tu venta actual no cambia, solo el punto de comparación. El budget y la cartera se toman del archivo activo (normalmente el YTD, que trae el budget anual completo).",
                          "en": "Choose what your current-year running total is compared against. “YTD file”: the same period last year (apples to apples). “Full Year”: the whole prior year, to see how far into the year you are and project the close. Your actual sales don't change, only the comparison basis. Budget and backlog come from the active file (usually the YTD file, which carries the full annual budget)."},
+    "ov_landing_month": {"es": "Aterrizaje proyectado con estacionalidad mensual: {n} meses con datos → {land} al cierre (índice {idx} del año recorrido).",
+                        "en": "Landing projected from monthly seasonality: {n} months with data → {land} at year-end (index {idx} of the year elapsed)."},
     "fy_intro":        {"es": "Ventas **YTD {cur}** (acumulado al mes analizado) comparadas contra el **año completo {prior}**. El budget mostrado es el **budget anual**; el aterrizaje proyecta el cierre del año.",
                         "en": "**YTD {cur}** sales (running total to the analysed month) compared against **full-year {prior}**. The budget shown is the **annual budget**; the landing projects the year-end close."},
     "sc_budget_src":   {"es": "Budget anual (full year) usado: {total} · fuente: {file}. El landing se mide siempre contra el budget anual, no contra un budget YTD.",
@@ -1294,6 +1303,13 @@ _PT_FR = {
     "none": {"pt": "(nenhuma)", "fr": "(aucune)"},
     "empty_all": {"pt": "Vazio = todos", "fr": "Vide = tous"},
     "upload_title": {"pt": "Carregar arquivos", "fr": "Charger les fichiers"},
+    "upload_main": {"pt": "Arquivo principal", "fr": "Fichier principal"},
+    "upload_main_short": {"pt": "Principal", "fr": "Principal"},
+    "upload_main_help": {"pt": "Suba aqui seu export do BI. Se o arquivo inclui o detalhamento por mês (coluna «By Month»), basta este: o app deriva o YTD, o budget anual, a carteira e a aterrissagem projetada de um único arquivo.",
+                        "fr": "Chargez ici votre export BI. S'il inclut le détail par mois (colonne « By Month »), ce seul fichier suffit : l'app en déduit le YTD, le budget annuel, le carnet et l'atterrissage projeté."},
+    "upload_single_hint": {"pt": "Com um arquivo mensal, este é o único necessário. Os de baixo são opcionais.",
+                        "fr": "Avec un fichier mensuel, c'est le seul nécessaire. Ceux ci-dessous sont optionnels."},
+    "upload_more": {"pt": "Arquivos adicionais (opcional)", "fr": "Fichiers supplémentaires (optionnel)"},
     "upload_ytd": {"pt": "Arquivo YTD (ano atual vs ano anterior)",
                    "fr": "Fichier YTD (année en cours vs précédente)"},
     "upload_fy": {"pt": "Arquivo histórico / Full Year (multi-ano)",
@@ -1324,6 +1340,8 @@ _PT_FR = {
     "data_source": {"pt": "Fonte de dados", "fr": "Source de données"},
     "data_source_help": {"pt": "Escolha contra o que seu acumulado do ano atual é comparado. «Arquivo YTD»: contra o mesmo período do ano anterior (maçãs com maçãs). «Full Year»: contra o ano completo anterior, para ver quanto do ano já percorreu e projetar o fechamento. Sua venda atual não muda, apenas o ponto de comparação. O budget e a carteira vêm do arquivo ativo (normalmente o YTD, que traz o budget anual completo).",
                          "fr": "Choisissez ce à quoi votre cumul de l'année en cours est comparé. « Fichier YTD » : la même période l'an dernier (à périmètre comparable). « Full Year » : l'année complète précédente, pour voir où vous en êtes dans l'année et projeter la clôture. Vos ventes réelles ne changent pas, seule la base de comparaison. Le budget et le carnet proviennent du fichier actif (généralement le fichier YTD, qui porte le budget annuel complet)."},
+    "ov_landing_month": {"pt": "Aterrissagem projetada com sazonalidade mensal: {n} meses com dados → {land} no fechamento (índice {idx} do ano percorrido).",
+                        "fr": "Atterrissage projeté par saisonnalité mensuelle : {n} mois avec données → {land} à la clôture (indice {idx} de l'année écoulée)."},
     "fy_intro": {"pt": "Vendas **YTD {cur}** (acumulado até o mês analisado) comparadas contra o **ano completo {prior}**. O budget mostrado é o **budget anual**; a aterrissagem projeta o fechamento do ano.",
                  "fr": "Ventes **YTD {cur}** (cumul jusqu'au mois analysé) comparées à l'**année complète {prior}**. Le budget affiché est le **budget annuel** ; l'atterrissage projette la clôture de l'année."},
     "sc_budget_src": {"pt": "Budget anual (full year) usado: {total} · fonte: {file}. A aterrissagem é sempre medida contra o budget anual, nunca contra um budget YTD.",
@@ -1818,6 +1836,39 @@ PURE_YEAR_RE = re.compile(r"^(?:19|20)\d{2}(?:\.\d+)?$")
 HEADER_SCAN_ROWS = 12
 SHEET_HINTS = ("export", "data", "datos", "sheet1", "hoja1", "report", "reporte")
 
+# Optional "By Month" breakdown column — captured for a single-file seasonal
+# landing forecast. Not part of the dimension hierarchy used for grouping.
+MONTH_CAPTIONS = ("by month", "month", "mes", "periodo", "período", "period")
+_MONTHS = {
+    "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
+    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11,
+    "december": 12,
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
+    "julio": 7, "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10,
+    "noviembre": 11, "diciembre": 12,
+    "janeiro": 1, "fevereiro": 2, "marco": 3, "abril_pt": 4, "maio": 5,
+    "junho": 6, "julho": 7, "agosto_pt": 8, "setembro": 9, "outubro": 10,
+    "novembro": 11, "dezembro": 12,
+    "janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6,
+    "juillet": 7, "aout": 8, "septembre_fr": 9, "octobre": 10, "novembre_fr": 11,
+    "decembre": 12,
+}
+
+
+def _month_number(value: object) -> float:
+    text = normalise(value)
+    if not text:
+        return float("nan")
+    if text in _MONTHS:
+        return float(_MONTHS[text])
+    # A 3-letter abbreviation or a leading month word.
+    for name, num in _MONTHS.items():
+        if text[:3] and name.startswith(text[:3]):
+            return float(num)
+    if text.isdigit() and 1 <= int(text) <= 12:
+        return float(int(text))
+    return float("nan")
+
 
 # --------------------------------------------------------------------------- #
 # Result container
@@ -2073,6 +2124,17 @@ def parse_export(data: bytes, filename: str = "") -> ParsedExport:
             dim_cols[canon] = idx
     profile["dimensions"] = {k: str(captions[v]) for k, v in dim_cols.items()}
 
+    # Optional "By Month" column — kept aside for the single-file seasonal
+    # landing forecast, not treated as a grouping dimension.
+    month_col = None
+    for idx, caption in captions.items():
+        if idx in dim_cols.values():
+            continue
+        if normalise(caption) in MONTH_CAPTIONS:
+            month_col = idx
+            break
+    profile["has_month"] = month_col is not None
+
     if not dim_cols:
         raise ValueError(
             "No se reconoció ninguna columna de dimensión. Se esperan al menos "
@@ -2211,6 +2273,13 @@ def parse_export(data: bytes, filename: str = "") -> ParsedExport:
     dims["customer_name"] = _strip_code(dims["customer"])
     dims["enterprise_name"] = _strip_code(dims["enterprise"])
     dims["product_name"] = _strip_code(dims["product"])
+
+    # Month of each leaf row (1–12), when the export carries a "By Month"
+    # breakdown. Enables a single-file seasonal landing forecast.
+    if month_col is not None:
+        dims["month"] = [_month_number(v) for v in leaves[month_col]]
+    else:
+        dims["month"] = float("nan")
 
     # --- one tidy block per year -------------------------------------------
     frames = []
@@ -2645,6 +2714,39 @@ def portfolio_pace(
         "n_total": int(len(idx)),
         "n_inconsistent": int((idx["reliability"] == "base inconsistente").sum()),
     }
+
+
+def monthly_seasonality(tidy: pd.DataFrame, current_year: int, prior_year: int):
+    """Single-file seasonal index from a 'By Month' breakdown.
+
+    index = share of the prior full year that fell in the *same* months that
+    carry data this year. So if this year has Jan–Aug and the prior year booked
+    64% of its total by August, the index is 0.64 and the landing is YTD / 0.64.
+    Returns (index, months_present); index is NaN when there is no usable month
+    data or the prior year is empty.
+    """
+    if "month" not in tidy.columns or tidy["month"].notna().sum() == 0:
+        return float("nan"), set()
+    cur = tidy[tidy["year"] == current_year]
+    active = cur[(cur["sales"].fillna(0) != 0) & cur["month"].notna()]
+    months = {int(m) for m in active["month"].dropna().unique() if 1 <= int(m) <= 12}
+    if not months:
+        return float("nan"), months
+    prior = tidy[tidy["year"] == prior_year]
+    prior_full = float(prior["sales"].fillna(0).sum())
+    prior_same = float(prior[prior["month"].isin(months)]["sales"].fillna(0).sum())
+    if prior_full <= 0 or prior_same <= 0:
+        return float("nan"), months
+    return prior_same / prior_full, months
+
+
+def monthly_landing(tidy: pd.DataFrame, current_year: int, prior_year: int) -> dict:
+    """Full-year landing projected from the monthly seasonal index (single file)."""
+    index, months = monthly_seasonality(tidy, current_year, prior_year)
+    ytd = float(tidy[tidy["year"] == current_year]["sales"].fillna(0).sum())
+    landing = ytd / index if (index == index and index > 0) else float("nan")
+    return {"index": index, "months": sorted(months), "n_months": len(months),
+            "ytd": ytd, "landing": landing}
 
 
 def multi_year_trend(fy_tidy: pd.DataFrame, years: list[int], level: str | None = None) -> pd.DataFrame:
@@ -3591,7 +3693,7 @@ import numpy as np
 import pandas as pd
 
 from core import metrics as MX
-from core.forecast import landing_forecast, portfolio_pace
+from core.forecast import landing_forecast, monthly_seasonality, portfolio_pace
 
 FLOOR = 10.0
 LEVEL = "enterprise"
@@ -3686,6 +3788,16 @@ class Score:
 
 
 def _seasonality(ctx) -> tuple[float, bool]:
+    # Prefer a single-file monthly index: if the active file has a By Month
+    # breakdown, the prior year's share booked in the same months IS the index,
+    # no second file needed.
+    try:
+        idx, _months = monthly_seasonality(ctx.tidy, ctx.current_year,
+                                           ctx.current_year - 1)
+        if idx == idx and idx > 0:
+            return float(idx), True
+    except Exception:
+        pass
     if not ctx.has_both:
         return float("nan"), False
     try:
@@ -4963,7 +5075,7 @@ from __future__ import annotations
 import numpy as np
 import streamlit as st
 
-from core import bridges, charts, metrics as MX, theme as T, ui
+from core import bridges, charts, forecast, metrics as MX, theme as T, ui
 from core.forecast import portfolio_pace
 from core.i18n import t
 
@@ -5060,6 +5172,18 @@ def render(ctx) -> None:
                 charts.bullet(pace["landing"], pace["budget"], pace["prior_fy"],
                               t("landing")),
                 width="stretch", key="overview_4")
+        else:
+            # Single-file with a monthly breakdown: project the landing from the
+            # prior year's month-by-month seasonality.
+            ml = forecast.monthly_landing(ctx.tidy, ctx.current_year, ctx.current_year - 1)
+            if not np.isnan(ml.get("landing", np.nan)):
+                prior_fy = float(ctx.slice_year(ctx.base_year)["sales"].fillna(0).sum())
+                st.plotly_chart(
+                    charts.bullet(ml["landing"], budget, prior_fy, t("landing")),
+                    width="stretch", key="overview_4")
+                ui.note(t("ov_landing_month", n=ml["n_months"],
+                          land=T.money_compact(ml["landing"]),
+                          idx=T.pct(ml["index"], 0)))
 
     st.divider()
 
@@ -6618,17 +6742,19 @@ def sidebar_uploads() -> None:
     st.sidebar.markdown(f"### {t('upload_title')}")
 
     ytd_file = st.sidebar.file_uploader(
-        t("upload_ytd"), type=["xlsx", "xlsm"], key=f"up_ytd_{epoch}",
-        help=t("upload_help"),
+        t("upload_main"), type=["xlsx", "xlsm"], key=f"up_ytd_{epoch}",
+        help=t("upload_main_help"),
     )
-    fy_file = st.sidebar.file_uploader(
-        t("upload_fy"), type=["xlsx", "xlsm"], key=f"up_fy_{epoch}",
-        help=t("upload_help"),
-    )
-    prev_file = st.sidebar.file_uploader(
-        t("upload_prev"), type=["xlsx", "xlsm"], key=f"up_prev_{epoch}",
-        help=t("upload_prev_help"),
-    )
+    st.sidebar.caption(t("upload_single_hint"))
+    with st.sidebar.expander(t("upload_more")):
+        fy_file = st.file_uploader(
+            t("upload_fy"), type=["xlsx", "xlsm"], key=f"up_fy_{epoch}",
+            help=t("upload_help"),
+        )
+        prev_file = st.file_uploader(
+            t("upload_prev"), type=["xlsx", "xlsm"], key=f"up_prev_{epoch}",
+            help=t("upload_prev_help"),
+        )
 
     for slot, uploaded in (("ytd", ytd_file), ("fy", fy_file), ("prev", prev_file)):
         if uploaded is None:
@@ -6643,7 +6769,8 @@ def sidebar_uploads() -> None:
         except Exception as exc:  # noqa: BLE001 - surfaced to the user verbatim
             st.sidebar.error(t("upload_error", name=uploaded.name, error=exc))
 
-    for slot, label in (("ytd", "YTD"), ("fy", "Full Year"), ("prev", t("prev_short"))):
+    for slot, label in (("ytd", t("upload_main_short")), ("fy", "Full Year"),
+                        ("prev", t("prev_short"))):
         parsed = st.session_state.get(slot)
         if parsed is not None:
             years = parsed.substantive_years
