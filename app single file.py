@@ -4527,6 +4527,15 @@ class Context:
     # complete backlog is the sum of the current year AND every forward year —
     # never the current-year slice alone, which drops orders booked for next year.
     def _backlog_frame(self) -> pd.DataFrame:
+        # The complete backlog — including orders booked for future shipping
+        # years — lives in the Full Year file (the July YTD export has no 2027
+        # band). So the backlog comes from the same forward-year source as the
+        # annual budget, not from the active file, which may only hold the
+        # current year. Falls back to the active file when no such source exists.
+        frame = self._annual_frame()
+        if frame is not None and "sales_open" in frame.columns \
+                and float(frame["sales_open"].fillna(0).abs().sum()) > 0:
+            return frame
         return self.tidy[self.tidy["year"] >= self.current_year]
 
     def backlog_totals(self) -> dict:
