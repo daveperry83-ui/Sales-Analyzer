@@ -3749,8 +3749,9 @@ def compute(ctx, weights: tuple[float, float] = DEFAULT_WEIGHTS) -> Score:
     """Score the active filter. Uses both files when available."""
     cur = MX.totals(ctx.slice_year(ctx.current_year))
     ann = ctx.annual_budget_totals()
+    bl = ctx.backlog_totals()          # full backlog incl. forward-shipped orders
     ytd = float(cur.get("sales") or 0.0)
-    backlog = float(cur.get("sales_open") or 0.0)
+    backlog = float(bl.get("sales_open") or 0.0)
     # Budget is the ANNUAL (full-year) budget — the landing is a full-year
     # projection, so it must be measured against the full-year target, never a
     # YTD / to-date budget.
@@ -3775,7 +3776,7 @@ def compute(ctx, weights: tuple[float, float] = DEFAULT_WEIGHTS) -> Score:
     ):
         v = float(cur.get(value_col) or 0.0)
         b = float(ann.get(budget_col) or 0.0)   # annual budget component
-        o = float(cur.get(open_col) or 0.0)
+        o = float(bl.get(open_col) or 0.0)      # full backlog component
         land = max(v / index if projected and index > 0 else v, v + o)
         components[key] = {
             "ytd": v, "backlog": o, "budget": b, "landing": land,
@@ -4501,8 +4502,11 @@ class Context:
         for name, parsed in (("fy", self.fy), ("ytd", self.ytd)):
             if parsed is None or "sales_bdg" not in parsed.tidy:
                 continue
+            # Sum the current year AND any forward year: a multi-year export
+            # splits one annual budget across the calendar year it will ship in
+            # (e.g. 2026 + 2027), so only the sum is the true annual figure.
             totals[name] = (parsed, float(
-                parsed.tidy.loc[parsed.tidy["year"] == self.current_year,
+                parsed.tidy.loc[parsed.tidy["year"] >= self.current_year,
                                 "sales_bdg"].fillna(0).sum()))
         if not totals:
             return None
@@ -4517,11 +4521,34 @@ class Context:
         parsed = self._annual_parsed()
         return getattr(parsed, "filename", "") or "—"
 
+    # --------------------------------------------------------------- backlog --
+    # Open orders are the whole booked-but-not-invoiced backlog. A multi-year
+    # export attributes each order to the calendar year it will ship in, so the
+    # complete backlog is the sum of the current year AND every forward year —
+    # never the current-year slice alone, which drops orders booked for next year.
+    def _backlog_frame(self) -> pd.DataFrame:
+        return self.tidy[self.tidy["year"] >= self.current_year]
+
+    def backlog_totals(self) -> dict:
+        df = self._backlog_frame()
+        out = {}
+        for col in ("sales_open", "profit_open", "qty_open"):
+            out[col] = float(df[col].fillna(0).sum()) if col in df.columns else 0.0
+        return out
+
+    def backlog_by(self, level: str) -> pd.Series | None:
+        df = self._backlog_frame()
+        if "sales_open" not in df.columns or level not in df.columns:
+            return None
+        return df.groupby(level, dropna=False)["sales_open"].sum(min_count=1).fillna(0.0)
+
     def _annual_frame(self) -> pd.DataFrame | None:
         parsed = self._annual_parsed()
         if parsed is None:
             return None
-        df = parsed.tidy[parsed.tidy["year"] == self.current_year]
+        # Current year + forward years, so a budget split across shipping years
+        # (2026 + 2027) is summed into the full annual figure.
+        df = parsed.tidy[parsed.tidy["year"] >= self.current_year]
         if self.selected_groups:
             df = df[df["enterprise"].isin(self.selected_groups)]
         if self.selected_accounts:
@@ -4935,13 +4962,14 @@ def render(ctx) -> None:
     invoiced = float(cur.get("sales") or 0)
     invoiced_profit = float(cur.get("profit") or 0)
     invoiced_qty = float(cur.get("quantity") or 0)
-    open_sales = float(cur.get("sales_open") or 0)
-    open_profit = float(cur.get("profit_open") or 0)
-    open_qty = float(cur.get("qty_open") or 0)
+    _bl = ctx.backlog_totals()   # full backlog incl. forward-shipped orders
+    open_sales = float(_bl.get("sales_open") or 0)
+    open_profit = float(_bl.get("profit_open") or 0)
+    open_qty = float(_bl.get("qty_open") or 0)
     if ctx.include_open:
-        cur["sales"] = invoiced + (cur.get("sales_open") or 0)
-        cur["profit"] = (cur.get("profit") or 0) + (cur.get("profit_open") or 0)
-        cur["quantity"] = (cur.get("quantity") or 0) + (cur.get("qty_open") or 0)
+        cur["sales"] = invoiced + open_sales
+        cur["profit"] = invoiced_profit + open_profit
+        cur["quantity"] = invoiced_qty + open_qty
         cur["margin_pct"] = cur["profit"] / cur["sales"] if cur["sales"] else np.nan
         cur["price"] = cur["sales"] / cur["quantity"] if cur["quantity"] else np.nan
 
@@ -5391,8 +5419,7 @@ from core.i18n import t
 
 
 def _has_backlog(ctx) -> bool:
-    block = ctx.slice_year(ctx.current_year)
-    return "sales_open" in block and float(block["sales_open"].fillna(0).abs().sum()) > 0
+    return float(ctx.backlog_totals().get("sales_open") or 0) != 0
 
 
 def render(ctx) -> None:
@@ -5405,10 +5432,12 @@ def render(ctx) -> None:
 
     level = ctx.group_level
     cur = MX.totals(ctx.slice_year(ctx.current_year))
+    bl = ctx.backlog_totals()          # full backlog incl. forward-shipped orders
+    ann = ctx.annual_budget_totals()   # annual full-year budget
     invoiced = float(cur.get("sales") or 0)
-    open_sales = float(cur.get("sales_open") or 0)
-    open_profit = float(cur.get("profit_open") or 0)
-    budget = float(cur.get("sales_bdg") or 0)
+    open_sales = float(bl.get("sales_open") or 0)
+    open_profit = float(bl.get("profit_open") or 0)
+    budget = float(ann.get("sales_bdg") or 0)
     sold_open = invoiced + open_sales
     gap = budget - invoiced
     coverage = open_sales / gap if gap > 0 else np.nan
@@ -5416,6 +5445,12 @@ def render(ctx) -> None:
 
     # --- headline -----------------------------------------------------------
     grouped = MX.aggregate(ctx.slice_year(ctx.current_year), level)
+    bl_by = ctx.backlog_by(level)
+    if bl_by is not None:
+        grouped["sales_open"] = grouped[level].map(bl_by).fillna(0.0).to_numpy()
+    abg = ctx.annual_budget_by(level)   # annual budget per group
+    if abg is not None and "sales_bdg" in grouped.columns:
+        grouped["sales_bdg"] = grouped[level].map(abg["sales_bdg"]).to_numpy()
     with_backlog = int((grouped["sales_open"].fillna(0) > 0).sum())
 
     k1, k2, k3, k4 = st.columns(4)
