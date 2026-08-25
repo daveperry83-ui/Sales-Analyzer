@@ -1179,6 +1179,10 @@ STRINGS: dict[str, dict[str, str]] = {
 
     # -------------------------------------------------------------- scoring --
     "sc_title":        {"es": "Puntaje", "en": "Score"},
+    "sc_budget_title": {"es": "Puntaje vs Budget", "en": "Score vs Budget"},
+    "sc_growth_title": {"es": "Puntaje Crecimiento (vs {year})", "en": "Growth score (vs {year})"},
+    "sc_growth_vs":    {"es": "aterrizaje {land} vs año completo {fy}",
+                        "en": "landing {land} vs full year {fy}"},
     "sc_sales_score":  {"es": "Puntaje ventas", "en": "Sales score"},
     "sc_margin_score": {"es": "Puntaje margen", "en": "Margin score"},
     "sc_weight_sales": {"es": "Peso de ventas (%)", "en": "Sales weight (%)"},
@@ -1415,6 +1419,10 @@ _PT_FR = {
     "no_threshold": {"pt": "sem limite", "fr": "aucun seuil"},
     # score / evolution headline labels
     "sc_title": {"pt": "Pontuação", "fr": "Score"},
+    "sc_budget_title": {"pt": "Pontuação vs Budget", "fr": "Score vs Budget"},
+    "sc_growth_title": {"pt": "Pontuação Crescimento (vs {year})", "fr": "Score Croissance (vs {year})"},
+    "sc_growth_vs": {"pt": "aterrissagem {land} vs ano completo {fy}",
+                     "fr": "atterrissage {land} vs année complète {fy}"},
     "sc_sales_score": {"pt": "Pontuação vendas", "fr": "Score ventes"},
     "sc_margin_score": {"pt": "Pontuação margem", "fr": "Score marge"},
     "sc_band_on": {"pt": "No budget", "fr": "Sur budget"},
@@ -3756,6 +3764,8 @@ class Score:
     margin: float                     # achieved margin %
     margin_budget: float              # budgeted margin %
     projected: bool                   # False when there is no seasonality index
+    growth_score: float = float("nan")  # landing vs prior FULL year (100 = matches)
+    prior_fy_sales: float = 0.0         # prior full-year sales
     index: float = float("nan")
     band: str = "critical"
     components: dict = field(default_factory=dict)
@@ -3892,6 +3902,11 @@ def compute(ctx, weights: tuple[float, float] = DEFAULT_WEIGHTS) -> Score:
     margin_score = _ratio_score(margin, margin_budget)
     value = blend(sales_score, margin_score, weights)
 
+    # Second, independent score: projected landing vs the prior FULL year.
+    # 100 = on track to match last year's total; >100 = growth.
+    prior_fy_sales = float(ctx.prior_full_year()["sales"].fillna(0).sum())
+    growth_score = _ratio_score(landing, prior_fy_sales)
+
     components: dict[str, dict] = {}
     for key, value_col, budget_col, open_col in (
         ("sales", "sales", "sales_bdg", "sales_open"),
@@ -3918,6 +3933,7 @@ def compute(ctx, weights: tuple[float, float] = DEFAULT_WEIGHTS) -> Score:
         weights=weights, landing=landing, budget=budget, ytd=ytd, backlog=backlog,
         margin=margin, margin_budget=margin_budget,
         projected=projected, index=index, band=band_of(value),
+        growth_score=growth_score, prior_fy_sales=prior_fy_sales,
         components=components,
         by_group=_group_scores(ctx, index, projected, weights),
     )
@@ -4710,6 +4726,57 @@ class Context:
         g["margin_bdg_pct"] = g["profit_bdg"] / g["sales_bdg"].replace(0, np.nan)
         return g
 
+    # --------------------------------------------------------- comparability --
+    # When the file carries a By Month breakdown, a YTD year (Jan–Aug) must be
+    # compared against the SAME months of the base year, not its full 12 months,
+    # or the year-on-year delta is negative until December by construction.
+    def top_level(self) -> str:
+        """The shallowest grouping level that actually carries data: 'enterprise'
+        when the file has a real group column, otherwise 'customer'. Keeps the
+        client sheet and default grouping working on files without an Enterprise
+        dimension (e.g. a monthly export keyed on Customer)."""
+        ent = self.tidy.get("enterprise")
+        if ent is not None and (ent.astype("string") != "N/D").any():
+            return "enterprise"
+        return "customer"
+
+    @property
+    def current_months(self) -> set:
+        cur = self.slice_year(self.current_year)
+        if "month" not in cur.columns:
+            return set()
+        active = cur.loc[cur["sales"].fillna(0) != 0, "month"].dropna()
+        return {int(m) for m in active.unique() if 1 <= int(m) <= 12}
+
+    def comparable_tidy(self) -> pd.DataFrame:
+        """Active frame with the base year trimmed to the current year's months."""
+        months = self.current_months
+        if not months or "month" not in self.tidy.columns:
+            return self.tidy
+        keep = (self.tidy["year"] != self.base_year) | self.tidy["month"].isin(months)
+        return self.tidy[keep]
+
+    def comparable_base(self) -> pd.DataFrame:
+        """Base-year slice restricted to the current year's months."""
+        base = self.slice_year(self.base_year)
+        months = self.current_months
+        if not months or "month" not in base.columns:
+            return base
+        return base[base["month"].isin(months)]
+
+    def prior_full_year(self) -> pd.DataFrame:
+        """The base year's COMPLETE set of months, from whichever loaded file
+        holds the fullest base year (the Full Year export, or a monthly file)."""
+        best, best_sales = None, -1.0
+        for parsed in (self.fy, self.ytd):
+            if parsed is None:
+                continue
+            block = parsed.tidy[parsed.tidy["year"] == self.base_year]
+            s = float(block["sales"].fillna(0).sum())
+            if s > best_sales:
+                best, best_sales = block, s
+        return best if best is not None else self.slice_year(self.base_year)
+
     def budget_supported(self, level: str | None = None) -> bool:
         """Budget is loaded against a placeholder customer, so it only lands
         on the enterprise and the product hierarchy."""
@@ -4717,7 +4784,8 @@ class Context:
 
     def compare(self, level: str | None = None) -> pd.DataFrame:
         level = level or self.group_level
-        source = self.tidy
+        # Base year trimmed to the current year's months → YoY is apples-to-apples.
+        source = self.comparable_tidy()
         if not self.budget_supported(level) and "is_group_row" in source.columns:
             # Placeholder budget rows would appear as ghost accounts with a
             # budget and no sales. Drop them and the budget columns with them.
@@ -4823,8 +4891,13 @@ def build_sidebar(ytd, fy) -> Context:
     # --- dimensions ---------------------------------------------------------
     st.sidebar.markdown(f"### {t('dimensions')}")
     level_keys = list(GROUP_LEVELS)
+    # Default to the shallowest level that carries data: enterprise if present,
+    # otherwise customer (files without an Enterprise column).
+    _has_ent = "enterprise" in tidy_all.columns and \
+        (tidy_all["enterprise"].astype("string") != "N/D").any()
+    _default_level = "enterprise" if _has_ent else "customer"
     group_level = st.sidebar.selectbox(
-        t("group_by"), level_keys, index=level_keys.index("enterprise"),
+        t("group_by"), level_keys, index=level_keys.index(_default_level),
         format_func=_pretty_level, key="flt_group",
     )
     if group_level not in BUDGET_LEVELS:
@@ -5082,7 +5155,7 @@ from core.i18n import t
 
 def render(ctx) -> None:
     cur_slice = ctx.slice_year(ctx.current_year)
-    base_slice = ctx.slice_year(ctx.base_year)
+    base_slice = ctx.comparable_base()   # base year trimmed to current months
     if cur_slice.empty and base_slice.empty:
         st.info(t("no_data"))
         return
@@ -5188,8 +5261,9 @@ def render(ctx) -> None:
     st.divider()
 
     # --- bridges ------------------------------------------------------------
-    sb = bridges.sales_bridge(ctx.tidy, ctx.current_year, ctx.base_year)
-    mb = bridges.margin_bridge(ctx.tidy, ctx.current_year, ctx.base_year)
+    cmp_tidy = ctx.comparable_tidy()   # base year trimmed to current months
+    sb = bridges.sales_bridge(cmp_tidy, ctx.current_year, ctx.base_year)
+    mb = bridges.margin_bridge(cmp_tidy, ctx.current_year, ctx.base_year)
 
     st.plotly_chart(
         charts.waterfall(sb, t("ov_sales_bridge", base=ctx.base_year, cur=ctx.current_year)),
@@ -5267,16 +5341,16 @@ from core import bridges, charts, metrics as MX, theme as T, ui
 from core.forecast import landing_forecast, multi_year_trend
 from core.i18n import t
 
-LEVEL = "enterprise"
-
-
-def _client_options(ctx) -> pd.DataFrame:
+def _client_options(ctx, level: str) -> pd.DataFrame:
     """Every client group with its current-year sales, biggest first."""
     full = ctx.unfiltered()
+    months = ctx.current_months
+    base_full = full[full["year"] == ctx.base_year]
+    if months and "month" in base_full.columns:
+        base_full = base_full[base_full["month"].isin(months)]
     cur = (full[full["year"] == ctx.current_year]
-           .groupby(LEVEL, dropna=False)["sales"].sum(min_count=1).fillna(0.0))
-    base = (full[full["year"] == ctx.base_year]
-            .groupby(LEVEL, dropna=False)["sales"].sum(min_count=1).fillna(0.0))
+           .groupby(level, dropna=False)["sales"].sum(min_count=1).fillna(0.0))
+    base = base_full.groupby(level, dropna=False)["sales"].sum(min_count=1).fillna(0.0)
     frame = pd.concat([cur.rename("cur"), base.rename("base")], axis=1).fillna(0.0)
     return frame.sort_values("cur", ascending=False)
 
@@ -5313,7 +5387,8 @@ def _rank_of(options: pd.DataFrame, client: str) -> tuple[int, int, float]:
 def render(ctx) -> None:
     st.markdown(f"### {t('cl_title')}")
 
-    options = _client_options(ctx)
+    level = ctx.top_level()          # 'enterprise', or 'customer' when absent
+    options = _client_options(ctx, level)
     if options.empty:
         st.info(t("no_data"))
         return
@@ -5324,9 +5399,13 @@ def render(ctx) -> None:
         return
 
     full = ctx.unfiltered()
-    data = full[full[LEVEL] == client]
+    data = full[full[level] == client]
     cur_block = data[data["year"] == ctx.current_year]
     base_block = data[data["year"] == ctx.base_year]
+    # Base year trimmed to the current year's months → apples-to-apples.
+    months = ctx.current_months
+    if months and "month" in base_block.columns:
+        base_block = base_block[base_block["month"].isin(months)]
     if cur_block.empty and base_block.empty:
         st.info(t("cl_no_activity", client=client))
         return
@@ -5349,9 +5428,17 @@ def render(ctx) -> None:
     st.divider()
 
     # --- budget, backlog, landing -------------------------------------------
-    budget = float(cur.get("sales_bdg") or 0)
+    # Progress is measured against the ANNUAL budget and the FULL backlog for
+    # this client, both sourced the same way as the overview.
+    _abg = ctx.annual_budget_by(level)
+    _blg = ctx.backlog_by(level)
+    budget = float(_abg["sales_bdg"].get(client, np.nan)) if _abg is not None \
+        else float(cur.get("sales_bdg") or 0)
+    budget = 0.0 if budget != budget else budget
     invoiced = float(cur.get("sales") or 0)
-    open_sales = float(cur.get("sales_open") or 0)
+    open_sales = float(_blg.get(client, np.nan)) if _blg is not None \
+        else float(cur.get("sales_open") or 0)
+    open_sales = 0.0 if open_sales != open_sales else open_sales
 
     left, right = st.columns(2)
     with left:
@@ -5374,7 +5461,7 @@ def render(ctx) -> None:
         if ctx.has_both:
             try:
                 fc = landing_forecast(ctx.ytd.tidy, ctx.fy.tidy, ctx.current_year,
-                                      ctx.current_year - 1, LEVEL)
+                                      ctx.current_year - 1, level)
                 if client in fc.index:
                     landing = fc.loc[client]
             except Exception:
@@ -5402,7 +5489,7 @@ def render(ctx) -> None:
     # --- multi-year history -------------------------------------------------
     if ctx.fy is not None:
         hist = multi_year_trend(
-            ctx.fy.tidy[ctx.fy.tidy[LEVEL] == client], ctx.fy.substantive_years)
+            ctx.fy.tidy[ctx.fy.tidy[level] == client], ctx.fy.substantive_years)
         if not hist.empty and hist["sales"].abs().sum() > 0:
             st.plotly_chart(
                 charts.dual_axis_trend(hist, "year", "sales", "margin_pct",
@@ -5416,9 +5503,12 @@ def render(ctx) -> None:
     delta = float(cur.get("sales") or 0) - float(base.get("sales") or 0)
     st.markdown(f"#### {t('cl_why', delta=T.signed(delta))}")
 
-    sb = bridges.sales_bridge(data, ctx.current_year, ctx.base_year,
+    data_cmp = data
+    if months and "month" in data.columns:
+        data_cmp = data[(data["year"] != ctx.base_year) | data["month"].isin(months)]
+    sb = bridges.sales_bridge(data_cmp, ctx.current_year, ctx.base_year,
                               ["customer", "item_code"])
-    mb = bridges.margin_bridge(data, ctx.current_year, ctx.base_year,
+    mb = bridges.margin_bridge(data_cmp, ctx.current_year, ctx.base_year,
                                ["customer", "item_code"])
     c1, c2 = st.columns(2)
     with c1:
@@ -5437,7 +5527,7 @@ def render(ctx) -> None:
 
     # --- what it buys -------------------------------------------------------
     st.markdown(f"#### {t('cl_products')}")
-    prod = MX.compare(data, "product_family", ctx.current_year, ctx.base_year,
+    prod = MX.compare(data_cmp, "product_family", ctx.current_year, ctx.base_year,
                       include_open=ctx.include_open)
     prod = MX.apply_materiality(prod, ctx.materiality)
 
@@ -5463,7 +5553,7 @@ def render(ctx) -> None:
                                 "sales_bdg_cur", t("cl_stack"), top_n=ctx.top_n),
             width="stretch", key="cl_stack")
 
-    item = MX.compare(data, "item_code", ctx.current_year, ctx.base_year,
+    item = MX.compare(data_cmp, "item_code", ctx.current_year, ctx.base_year,
                       include_open=ctx.include_open)
     item = MX.apply_materiality(item, ctx.materiality)
     cols = {"item_code": t("level_item_code"),
@@ -6402,26 +6492,42 @@ def render(ctx) -> None:
         st.info(t("sc_no_budget"))
         return
 
-    # --- headline ------------------------------------------------------------
-    k1, k2, k3, k4 = st.columns(4)
+    # --- headline: the two independent scores --------------------------------
+    from core.scoring import band_of
+    growth_band = band_of(score.growth_score)
+    g1, g2 = st.columns(2)
+    g1.markdown(ui.kpi_card(
+        t("sc_budget_title"), f"{score.value:,.0f}",
+        [(_band_label(score.band), score.value - 100, True),
+         (t("sc_landing_vs", land=T.money_compact(score.landing),
+            bdg=T.money_compact(score.budget)), None, True)]),
+        unsafe_allow_html=True)
+    g2.markdown(ui.kpi_card(
+        t("sc_growth_title", year=ctx.base_year),
+        f"{score.growth_score:,.0f}" if not np.isnan(score.growth_score) else "—",
+        [(_band_label(growth_band), score.growth_score - 100
+          if not np.isnan(score.growth_score) else None, True),
+         (t("sc_growth_vs", land=T.money_compact(score.landing),
+            fy=T.money_compact(score.prior_fy_sales)), None, True)]),
+        unsafe_allow_html=True)
+
+    # --- supporting sub-scores ----------------------------------------------
+    k1, k2, k3 = st.columns(3)
     k1.markdown(ui.kpi_card(
-        t("sc_title"), f"{score.value:,.0f}",
-        [(_band_label(score.band), score.value - 100, True)]), unsafe_allow_html=True)
-    k2.markdown(ui.kpi_card(
         t("sc_sales_score"), f"{score.sales_score:,.0f}"
         if not np.isnan(score.sales_score) else "—",
         [(t("sc_landing_vs", land=T.money_compact(score.landing),
             bdg=T.money_compact(score.budget)),
           score.sales_score - 100 if not np.isnan(score.sales_score) else None, True)]),
         unsafe_allow_html=True)
-    k3.markdown(ui.kpi_card(
+    k2.markdown(ui.kpi_card(
         t("sc_margin_score"), f"{score.margin_score:,.0f}"
         if not np.isnan(score.margin_score) else "—",
         [(t("sc_margin_vs", cur=T.pct(score.margin, 1),
             bdg=T.pct(score.margin_budget, 1)),
           score.margin_score - 100 if not np.isnan(score.margin_score) else None, True)]),
         unsafe_allow_html=True)
-    k4.markdown(ui.kpi_card(
+    k3.markdown(ui.kpi_card(
         t("landing"), T.money_compact(score.landing),
         [(t("sc_surplus", v=T.money_compact(abs(score.surplus))) if score.surplus >= 0
           else t("sc_shortfall", v=T.money_compact(abs(score.surplus))),
