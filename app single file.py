@@ -819,8 +819,12 @@ STRINGS: dict[str, dict[str, str]] = {
     "tab_data":        {"es": "Datos y calidad", "en": "Data & quality"},
 
     # ------------------------------------------------------------- grouping --
+    "level_account_manager": {"es": "Account manager", "en": "Account manager"},
     "level_enterprise":     {"es": "Cliente (grupo)", "en": "Customer (group)"},
     "level_customer":       {"es": "Cliente (cuenta)", "en": "Customer (account)"},
+    "filter_manager":       {"es": "Filtrar account manager", "en": "Filter account manager"},
+    "filter_manager_help":  {"es": "Vacío = todos los ejecutivos. Selecciona uno o varios para ver solo su cartera.",
+                             "en": "Empty = all managers. Pick one or more to see only their book."},
     "level_product_family": {"es": "Familia de producto", "en": "Product family"},
     "level_product":        {"es": "Producto", "en": "Product"},
     "level_item_code":      {"es": "Código de ítem", "en": "Item code"},
@@ -1386,8 +1390,12 @@ _PT_FR = {
     "tab_onepager": {"pt": "Pontuação e one-pager", "fr": "Score et one-pager"},
     "tab_data": {"pt": "Dados e qualidade", "fr": "Données et qualité"},
     # levels
+    "level_account_manager": {"pt": "Account manager", "fr": "Account manager"},
     "level_enterprise": {"pt": "Cliente (grupo)", "fr": "Client (groupe)"},
     "level_customer": {"pt": "Cliente (conta)", "fr": "Client (compte)"},
+    "filter_manager": {"pt": "Filtrar account manager", "fr": "Filtrer account manager"},
+    "filter_manager_help": {"pt": "Vazio = todos os executivos. Selecione um ou vários para ver só a carteira dele.",
+                            "fr": "Vide = tous les gestionnaires. Sélectionnez-en un ou plusieurs pour ne voir que leur portefeuille."},
     "level_product_family": {"pt": "Família de produto", "fr": "Famille de produit"},
     "level_product": {"pt": "Produto", "fr": "Produit"},
     "level_item_code": {"pt": "Código de item", "fr": "Code d'article"},
@@ -1497,6 +1505,13 @@ def normalise(text: object) -> str:
 # dropped. Order matters: the first synonym list that matches a column wins, and
 # a column is only claimed once.
 DIMENSION_SYNONYMS: dict[str, list[str]] = {
+    "account_manager": [
+        "account manager", "sales rep", "sales representative", "salesperson",
+        "sales person", "rep", "kam", "key account manager", "ejecutivo",
+        "ejecutivo de cuenta", "ejecutivo comercial", "vendedor", "gestor",
+        "gestor de cuenta", "comercial", "responsable", "responsable comercial",
+        "account owner", "sales owner", "seller",
+    ],
     "enterprise": [
         "enterprise", "enterprise group", "group", "grupo", "cliente grupo",
         "customer group", "parent customer", "corporate group", "holding",
@@ -1529,6 +1544,7 @@ DIMENSIONS = list(DIMENSION_SYNONYMS)
 
 # Grouping levels offered in the UI, in hierarchy order.
 GROUP_LEVELS = {
+    "account_manager": "Account manager",
     "enterprise": "Cliente (grupo)",
     "customer": "Cliente (cuenta)",
     "product_family": "Familia de producto",
@@ -2062,10 +2078,12 @@ def _group_marker_col(body: pd.DataFrame, dim_cols: dict[str, int]) -> int | Non
     scan from just after the top dimension up to the next real dimension and take
     the first column that actually carries subtotal tokens.
     """
-    order = [d for d in DIMENSIONS if d in dim_cols]
-    if not order:
+    if not dim_cols:
         return None
-    top = dim_cols[order[0]]
+    # The outermost pivot level is the LEFTMOST dimension column, whatever its
+    # canonical name — not the first in our declared order (a "Sales Rep" column
+    # sitting last must not be mistaken for the top level).
+    top = min(dim_cols.values())
     deeper = [c for c in dim_cols.values() if c > top]
     # Include the first deeper dimension column: when dimensions are adjacent
     # (no helper column between them, e.g. Customer|Product) the top-level
@@ -2280,9 +2298,16 @@ def parse_export(data: bytes, filename: str = "") -> ParsedExport:
     # customer key. Flag them; downstream code attributes budget at enterprise
     # level and refuses to fake a customer-level budget.
     dims["is_group_row"] = dims["customer"].str.endswith("[]").fillna(False)
+    dims["customer_account"] = dims["customer"]            # raw, keeps the code
     dims["customer_name"] = _strip_code(dims["customer"])
     dims["enterprise_name"] = _strip_code(dims["enterprise"])
     dims["product_name"] = _strip_code(dims["product"])
+
+    # Consolidate accounts that share a name but carry different ERP codes
+    # ("ALITECNO S.A.C. [4838]" and "[15400215]" are the same client). Group on
+    # the stripped name so the client sheet lists one client, not two. The raw
+    # coded account stays in customer_account for the per-account breakdown.
+    dims["customer"] = dims["customer_name"]
 
     # Month of each leaf row (1–12), when the export carries a "By Month"
     # breakdown. Enables a single-file seasonal landing forecast.
@@ -4635,6 +4660,7 @@ class Context:
     selected_groups: list[str] = field(default_factory=list)
     selected_accounts: list[str] = field(default_factory=list)
     selected_families: list[str] = field(default_factory=list)
+    selected_managers: list[str] = field(default_factory=list)
     prev: object | None = None
     full: pd.DataFrame | None = None   # effective unfiltered frame (see below)
     budget_from_fy: bool = False       # reserved
@@ -4927,13 +4953,17 @@ def build_sidebar(ytd, fy) -> Context:
     used_fy = False
 
     # --- dimensions ---------------------------------------------------------
+    def _present(dim: str) -> bool:
+        return dim in tidy_all.columns and \
+            (tidy_all[dim].astype("string") != "N/D").any()
+
     st.sidebar.markdown(f"### {t('dimensions')}")
-    level_keys = list(GROUP_LEVELS)
-    # Default to the shallowest level that carries data: enterprise if present,
-    # otherwise customer (files without an Enterprise column).
-    _has_ent = "enterprise" in tidy_all.columns and \
-        (tidy_all["enterprise"].astype("string") != "N/D").any()
-    _default_level = "enterprise" if _has_ent else "customer"
+    # Only offer grouping levels the file actually carries; the core three are
+    # always present, the optional ones (account manager, enterprise, family)
+    # appear only when populated.
+    level_keys = [k for k in GROUP_LEVELS
+                  if k in ("customer", "product", "item_code") or _present(k)]
+    _default_level = "enterprise" if _present("enterprise") else "customer"
     group_level = st.sidebar.selectbox(
         t("group_by"), level_keys, index=level_keys.index(_default_level),
         format_func=_pretty_level, key="flt_group",
@@ -4947,16 +4977,33 @@ def build_sidebar(ytd, fy) -> Context:
     )
     second_level = None if second == "__none__" else second
 
+    # Account manager filter (only when the file carries the dimension) — lets a
+    # supervisor see the whole book and drill into one manager's portfolio.
+    sel_managers: list[str] = []
+    if _present("account_manager"):
+        all_managers = sorted(
+            tidy_all.loc[tidy_all["account_manager"] != "N/D", "account_manager"]
+            .dropna().unique().tolist())
+        sel_managers = st.sidebar.multiselect(
+            t("filter_manager"), all_managers, key="flt_managers",
+            help=t("filter_manager_help"))
+
+    # Scope the client/account pools to the chosen managers so the lists stay
+    # relevant.
+    scoped = tidy_all
+    if sel_managers:
+        scoped = scoped[scoped["account_manager"].isin(sel_managers)]
+
     # Filter on the client GROUP, not the individual account. Filtering by
     # account silently dropped the budget (loaded against a "<GROUP> []"
     # placeholder) and split a client that trades under two codes.
-    all_groups = sorted(tidy_all["enterprise"].dropna().unique().tolist())
+    all_groups = sorted(scoped["enterprise"].dropna().unique().tolist())
     sel_groups = st.sidebar.multiselect(
         t("filter_customer"), all_groups, key="flt_groups", help=t("filter_customer_help"),
     )
 
     # Optional drill-down to specific accounts inside the chosen groups.
-    account_pool = tidy_all
+    account_pool = scoped
     if sel_groups:
         account_pool = account_pool[account_pool["enterprise"].isin(sel_groups)]
     all_accounts = sorted(
@@ -4967,7 +5014,7 @@ def build_sidebar(ytd, fy) -> Context:
         help=t("filter_account_help"),
     )
 
-    all_families = sorted(tidy_all["product_family"].dropna().unique().tolist())
+    all_families = sorted(scoped["product_family"].dropna().unique().tolist())
     sel_families = st.sidebar.multiselect(
         t("filter_family"), all_families, key="flt_families", help=t("empty_all"),
     )
@@ -4998,6 +5045,8 @@ def build_sidebar(ytd, fy) -> Context:
     # --- apply filters ------------------------------------------------------
     full_effective = tidy_all      # unfiltered active-source frame
     tidy = tidy_all
+    if sel_managers:
+        tidy = tidy[tidy["account_manager"].isin(sel_managers)]
     if sel_groups:
         tidy = tidy[tidy["enterprise"].isin(sel_groups)]
     if sel_accounts:
@@ -5008,7 +5057,7 @@ def build_sidebar(ytd, fy) -> Context:
         tidy = tidy[tidy["product_family"].isin(sel_families)]
     tidy = tidy[tidy["year"].isin(years)]
 
-    if sel_groups or sel_accounts or sel_families:
+    if sel_managers or sel_groups or sel_accounts or sel_families:
         st.sidebar.caption(t("filter_active", n=f"{len(tidy):,}"))
 
     return Context(
@@ -5018,7 +5067,7 @@ def build_sidebar(ytd, fy) -> Context:
         include_open=include_open, materiality=float(materiality), unit=unit or "kg",
         active_metrics=active, lang=st.session_state.get("lang", "es"),
         selected_groups=sel_groups, selected_accounts=sel_accounts,
-        selected_families=sel_families,
+        selected_families=sel_families, selected_managers=sel_managers,
         prev=st.session_state.get("prev"),
         full=full_effective, budget_from_fy=used_fy,
     )
@@ -5458,7 +5507,8 @@ def render(ctx) -> None:
     base = MX.totals(base_block)
     rank, n_clients, share = _rank_of(options, client)
 
-    accounts = sorted(data.loc[~data["is_group_row"], "customer"].dropna().unique())
+    _acct_col = "customer_account" if "customer_account" in data.columns else "customer"
+    accounts = sorted(data.loc[~data["is_group_row"], _acct_col].dropna().unique())
     ui.note(t("cl_note", rank=rank, total=n_clients, share=T.pct(share, 1),
               accounts=len(accounts), names=" · ".join(accounts) or "—"))
 
@@ -6992,4 +7042,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    
