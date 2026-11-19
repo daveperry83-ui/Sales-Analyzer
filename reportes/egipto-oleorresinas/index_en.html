@@ -65,8 +65,8 @@ footer{padding-block:26px 40px;font-size:11px;color:var(--muted)}
 footer ol{padding-left:16px;max-width:none}
 footer a{color:var(--mid);word-break:break-all}
 @media print{
-  @page{size:Letter;margin:11mm 13mm}
-  body{background:#fff;font-size:9.4pt;line-height:1.45;color:#10233a;--bg:#fff;--surface:#fff;--fg:#10233a;--muted:#51647a;--line:#cfd6de}
+  @page{size:Letter;margin:9mm 13mm}
+  body{background:#fff;font-size:9.2pt;line-height:1.4;color:#10233a;--bg:#fff;--surface:#fff;--fg:#10233a;--muted:#51647a;--line:#cfd6de}
   .wrap{max-width:none;padding:0}
   header.cover{padding-block:22px 20px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .wrap.in{padding-inline:13mm}
@@ -82,6 +82,8 @@ footer a{color:var(--mid);word-break:break-all}
   figcaption.src,.note,footer{font-size:7pt}
   .kpi .v{font-size:19pt}
   .tw{overflow:visible}
+  footer ol{columns:2;column-gap:14px}
+  footer li{break-inside:avoid}
   footer a{word-break:break-all}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -90,8 +92,8 @@ footer a{color:var(--mid);word-break:break-all}
 <header class="cover"><div class="wrap in">
   <p class="eyebrow">Market read · Naturals · Robertet</p>
   <h1>Oleoresins in <b>Egypt</b></h1>
-  <p class="thesis">Egypt imports its spice extracts from India and China and exports mainly to Saudi Arabia, Libya and France. It is a small market (US$5.6 M imported in 2024) and constrained by the exchange rate. As an origin, Egypt matters for seed spices, not for black pepper, turmeric or paprika oleoresins.</p>
-  <p class="meta">Data cut-off: 19 November 2026 · Trade data through 2024 (latest full year available) · Built on the reports project (Brazil model, December 2025)</p>
+  <p class="thesis">Egypt imports its spice extracts from India and China and exports mainly to Saudi Arabia, Libya and France. It is a small market (US$6.3 M imported in 2025) and constrained by the exchange rate. As an origin, Egypt matters for seed spices, not for black pepper, turmeric or paprika oleoresins.</p>
+  <p class="meta">Data cut-off: 19 November 2026 · Imports through 2025; exports through 2024 · Built on the reports project (Brazil model, December 2025)</p>
 </div></header>
 
 <main class="wrap in">
@@ -99,14 +101,14 @@ footer a{color:var(--mid);word-break:break-all}
 <section id="resumen">
   <h2>The market on one page</h2>
   <div class="kpis">
-    <div class="kpi"><div class="v">US$5.6 M</div><div class="l">HS 3301.90 imports (2024)</div><div class="s"><span class="up">+31%</span> vs 2023 · −28% vs 2022</div></div>
-    <div class="kpi"><div class="v">90%</div><div class="l">Sourced from India and China (2024)</div><div class="s">India 60% · China 30%</div></div>
+    <div class="kpi"><div class="v">US$6.3 M</div><div class="l">HS 3301.90 imports (2025)</div><div class="s"><span class="up">+12%</span> vs 2024 · −19% vs 2022</div></div>
+    <div class="kpi"><div class="v">91%</div><div class="l">Sourced from India and China (2025)</div><div class="s">India 81% · China 10%</div></div>
     <div class="kpi"><div class="v">US$6.7 M</div><div class="l">HS 3301.90 exports (2024)</div><div class="s"><span class="down">−33%</span> vs 2023 (US$10.0 M)</div></div>
     <div class="kpi"><div class="v">≈53.5</div><div class="l">EGP per USD, 15 Nov 2026</div><div class="s">Local bank quotes, not an official Central Bank rate</div></div>
   </div>
   <p style="margin-top:14px">Three takeaways for the commercial team:</p>
   <ul>
-    <li><b>A small, concentrated import market.</b> Two origins explain 90% of value, and their weights swing from year to year: India held 75% in 2022, 47% in 2023 and 60% in 2024. China went from 12% to 47% and back to 30%.</li>
+    <li><b>A small, concentrated import market.</b> Two origins explain 91% of value in 2025, and their weights swing every year: India held 75% in 2022, 47% in 2023, 60% in 2024 and 81% in 2025. China went from 12% to 47%, then to 30% and 10%.</li>
     <li><b>Egypt does not replicate the Brazil model.</b> There is no base of multinationals with local extraction and a heavy tax stack. Here the brakes are dollar availability and the advance cargo registration (ACID).</li>
     <li><b>As an origin, Egypt is a seed-spice source.</b> Cumin, coriander, fennel, caraway, anise and fenugreek. Its oleoresins and oils are a niche business with few verifiable players.</li>
   </ul>
@@ -116,12 +118,12 @@ footer a{color:var(--mid);word-break:break-all}
   <h2>Foreign trade: what comes in and what goes out</h2>
   <p>Heading 3301.90 groups extracted oleoresins, essential-oil concentrates, terpenic by-products and distilled waters. It does not separate spice oleoresins. Use it as a trend and origin indicator, not as an exact oleoresin volume.</p>
   <figure>
-    <figcaption class="t">Imports rose 31% in 2024 but remain below the 2022 peak</figcaption>
+    <figcaption class="t">Imports rose for a second year but remain below the 2022 peak</figcaption>
     <div id="c-trade"></div>
-    <figcaption class="src">Source: UN Comtrade (reporter Egypt, HS 330190, flows M and X, values in US$). 2024 data may be revised.</figcaption>
+    <figcaption class="src">Source: UN Comtrade (reporter Egypt, HS 330190, flows M and X, values in US$). 2024 and 2025 data may be revised. 2025 exports not queried.</figcaption>
   </figure>
   <figure>
-    <figcaption class="t">India regained first place in 2024 after tying with China in 2023</figcaption>
+    <figcaption class="t">India dominates again (81% in 2025) after tying with China in 2023</figcaption>
     <div id="c-origen"></div>
     <figcaption class="src">Source: UN Comtrade, Egypt imports HS 330190 by partner. "Other": Indonesia, United Kingdom, Lebanon, Canada and more than 10 countries.</figcaption>
   </figure>
@@ -139,7 +141,7 @@ footer a{color:var(--mid);word-break:break-all}
   <p class="note">Exports shifted toward the Middle East and Libya and away from the UK, USA and Switzerland. This is the pattern of an exporter selling local oils and concentrates to neighbours and to France, not re-selling imported spice oleoresins.</p>
   <h3>Two warnings about the data</h3>
   <ul>
-    <li><b>The reported weight looks estimated.</b> In each year every partner shows the same value per kilo (≈US$23.5 in 2024 for India, China and Indonesia). That happens when weight is derived from value. We do not use it as a price.</li>
+    <li><b>The reported weight looks estimated.</b> In each year every partner shows the same value per kilo (≈US$23.5 in 2024 for India, China and Indonesia). That happens when weight is derived from value. Egypt reports only at 6 digits, with no national lines separating oleoresins. We do not use it as a price.</li>
     <li><b>Neighbouring heading:</b> vegetable extracts HS 1302.19 totalled US$6.4 M in 2024 (US$8.0 M in 2022). Suppliers are Spain (24%), China (22%), Denmark (16%) and Türkiye (10%): a different botanical-extract market with a more European origin.</li>
   </ul>
 </section>
@@ -157,6 +159,8 @@ footer a{color:var(--mid);word-break:break-all}
     </tbody>
   </table></div>
   <p class="note">Source: IndiaMART and ExportersIndia listings consulted in November 2026. Listing update dates are not reliable. We do not convert to dollars because we lack the INR exchange rate for that date.</p>
+  <h3>Dollar references (source page not opened)</h3>
+  <p>Paprika ASTA 40,000: US$25–40/kg FOB India (exporter list, October 2026). Capsicum: average near US$35/kg over the 12 months to April 2026. Black pepper extract: US$77/kg as Indian export value in February 2026, at low volume. We found no 2026 price for celery, cumin or coriander oleoresin. These figures come from a search summary and Tridge; confirm with a quotation.</p>
   <h3>Egyptian raw material (seeds)</h3>
   <div class="tw"><table>
     <thead><tr><th>Product</th><th>Data point</th><th>Read</th></tr></thead>
@@ -182,6 +186,7 @@ footer a{color:var(--mid);word-break:break-all}
     <thead><tr><th>Segment</th><th>Who</th><th>Evidence status</th></tr></thead>
     <tbody>
       <tr><td>Flavour and fragrance houses</td><td>Symrise (Creative Center in Egypt, opened 26 Nov 2019); Givaudan (regional head of flavours for Africa and the Middle East); Kerry (works with an exclusive production partner in Egypt); IFF and dsm-firmenich appear in market lists</td><td><span class="tag t-w">Presence confirmed, volumes not</span></td></tr>
+      <tr><td>Unverified leads</td><td>Volza mentions Givaudan Egypt SAE (paprika oleoresin from China, 2019–2022) and Symrise SAE. Local houses that could buy: Namaa Flavors &amp; Fragrances (10th of Ramadan; EGP 250 M investment announced October 2025) and AFF (Alexandria, since 1969)</td><td><span class="tag t-r">Search summary, no open record</span></td></tr>
       <tr><td>Food and beverage processors</td><td>Local groups such as Juhayna</td><td><span class="tag t-r">Oleoresin purchasing not verified</span></td></tr>
       <tr><td>Importers and distributors</td><td>Per the US trade guide: processors, manufacturers and agents. It advises using a local importer to handle regulation and distribution</td><td><span class="tag t-w">General profile, no names</span></td></tr>
     </tbody>
@@ -191,8 +196,8 @@ footer a{color:var(--mid);word-break:break-all}
   <div class="tw"><table>
     <thead><tr><th></th><th>Brazil (previous report)</th><th>Egypt</th></tr></thead>
     <tbody>
-      <tr><td>Imports of essential oils and resinoids</td><td class="n">US$99.3 M (2024)</td><td class="n">US$5.6 M in HS 3301.90</td></tr>
-      <tr><td>Dominant origins</td><td>India and China (&gt;80% of volume)</td><td>India and China (90% of value)</td></tr>
+      <tr><td>Imports of essential oils and resinoids</td><td class="n">US$99.3 M (2024)</td><td class="n">US$6.3 M in HS 3301.90 (2025)</td></tr>
+      <tr><td>Dominant origins</td><td>India and China (&gt;80% of volume)</td><td>India and China (91% of value, 2025)</td></tr>
       <tr><td>Main brake</td><td>Cumulative tax burden of 35–40%</td><td>Dollars and the ACID procedure. HS 3301.90 duty not verified</td></tr>
       <tr><td>Local industrial base</td><td>Strong local houses (Duas Rodas)</td><td>Herb and seed exporters, few extractors</td></tr>
     </tbody>
@@ -213,19 +218,20 @@ footer a{color:var(--mid);word-break:break-all}
   </table></div>
   <p class="note">B2B directories (madeinegypt, Tridge) list dozens of firms offering "paprika, ginger, cumin oleoresin" with no capacity data. Confirm specifications, capacity and certificates in writing before qualifying any supplier. We found no Egyptian celery oleoresin producer.</p>
   <h3>Origins supplying Egypt</h3>
-  <p>India and China hold 90% of value. The supplier names below come from the Brazil report and global directories, and are not verified against shipments to Egypt:</p>
+  <p>India and China hold 91% of value (2025). The supplier names below come from the Brazil report and global directories, and are not verified against shipments to Egypt:</p>
   <ul>
     <li><b>India:</b> Plant Lipids, Synthite, Akay (Oterra), Mane Kancor, Vidya Herbs.</li>
     <li><b>China:</b> Chenguang Biotech (paprika and capsicum), Henan Sunlight.</li>
     <li><b>Other partners 2022–2024:</b> Sri Lanka (5% in 2022), Indonesia (4% in 2024), United Kingdom (3% in 2024), Lebanon.</li>
   </ul>
-  <p class="note">Some Plant Lipids and Akay listings appear on B2B platforms as "supplied from Egypt". They are likely intermediaries; we do not treat them as Egyptian production.</p>
+  <p class="note">Historical Zauba records (2013–2016) show India shipping seed oleoresins to Egypt (coriander, cumin, celery, fenugreek, fennel), which suggests Egypt imported them rather than produced them. We found no Egyptian producer of paprika, capsicum, pepper or turmeric oleoresin with evidence. In seed oils, A. Fakhry, Fridal and Al Sheikh appear, with no capacity data. Some Plant Lipids and Akay listings appear on B2B platforms as "supplied from Egypt". They are likely intermediaries; we do not treat them as Egyptian production.</p>
 </section>
 
 <section id="logistica">
   <h2>Regulation and logistics</h2>
   <ul>
     <li><b>ACID (Advance Cargo Information):</b> mandatory for sea cargo since October 2021 and for air cargo since 1 January 2026. The importer requests it on the Nafeza platform using the proforma invoice. Without an ACID the cargo cannot enter. It must appear on the commercial invoice, certificate of origin and transport documents. Valid for six months.</li>
+    <li><b>Sanitary requirements (per a summary of the USDA 2025 FAIRS report, not opened):</b> the positive list of colours and additives is NFSA Decision 4/2020. The certificate of analysis must state scientific name and concentration. If the shipment declares halal, the certificate is issued by IS EG Halal. Import VAT is 14%.</li>
     <li><b>Foreign currency:</b> access to dollars has constrained ingredient imports. Agree payment terms and lead times with each customer.</li>
     <li><b>Not verified:</b> duty and sanitary registration applicable to HS 3301.90 in Egypt. Pending a query to the Egyptian Customs Authority.</li>
   </ul>
@@ -243,6 +249,7 @@ footer a{color:var(--mid);word-break:break-all}
       <li>Payments and foreign currency. The local importer carries the dollar-access risk.</li>
     </ul></div>
     <div class="card"><h3>Pending</h3><ul>
+      <li>Mirror data from India (reporter 699, partner Egypt) by national line: it would split out the oleoresin share of 60–81% of Egypt's imports.</li>
       <li>Company-level customs data.</li>
       <li>HS 3301.90 duty.</li>
       <li>Recent FOB quotes from India for paprika, pepper and turmeric.</li>
@@ -260,13 +267,14 @@ footer a{color:var(--mid);word-break:break-all}
   <h2 style="font-size:12px">Method and sources</h2>
   <p>Structure and method taken from the report "Oleorresinas: Importadores, Proveedores y Valor" (Brazil) in the reports project. Trade data from UN Comtrade (public preview, consulted 19 November 2026). Company profiles are self-declared. Anything that could not be verified is flagged as such in the text. No figures were invented. Futuring Naturals®</p>
   <ol>
-    <li>UN Comtrade, reporter Egypt (818), HS 330190, 130219 and 090421, 2020–2024: comtradeplus.un.org</li>
+    <li>UN Comtrade, reporter Egypt (818), HS 330190 (2020–2025), 130219 and 090421 (2022–2024): comtradeplus.un.org</li>
     <li>OEC, Spices in Egypt Trade: <a href="https://oec.world/en/profile/bilateral-product/spices/reporter/egy">oec.world/en/profile/bilateral-product/spices/reporter/egy</a></li>
     <li>Spice Kingdom, Nutrada profile: <a href="https://nutrada.com/suppliers/spice-kingdom">nutrada.com/suppliers/spice-kingdom</a></li>
     <li>Alaghsan Egypt: <a href="https://spiceexportersdirectory.com/company/alaghsan-egypt-for-herbs-spices-cairo-egypt/">spiceexportersdirectory.com</a></li>
     <li>Al Rais Egypt: <a href="https://alraisegypt.com/egypt-spices-export/">alraisegypt.com/egypt-spices-export</a></li>
     <li>USD/EGP rate: <a href="https://arabfinance.com/en/News/newdetails/usd-egp-exchange-rate-on-november-15-2026">Arab Finance, 15 Nov 2026</a></li>
     <li>ACID: <a href="https://aegypten.ahk.de/en/news2/egypt-to-enforce-mandatory-aci-for-air-freight-starting-january-1-2026">AHK Egypt</a> · <a href="https://www.marken.com/new-rules-for-shipping-to-egypt-what-you-need-to-know">Marken</a></li>
+    <li>Leads and requirements: investigacion_dificil.md (Zauba, Volza, Zawya, USDA FAIRS 2025, Tridge); sources marked B were not opened.</li>
     <li>India prices: IndiaMART, ExportersIndia, TradeIndia (listings). Seed prices: Commodity Board, Tridge.</li>
     <li>Brazil comparison: project report, December 2025 (sources Eximpedia, OEC, Fortune Business Insights).</li>
   </ol>
@@ -278,21 +286,21 @@ footer a{color:var(--mid);word-break:break-all}
   function draw(){
     var tw=document.getElementById('c-trade'),or=document.getElementById('c-origen');
     var W=Math.max(300,Math.min(760,tw.clientWidth||760));
-    var yrs=['2020','2021','2022','2023','2024'],imp=[5.52,6.18,7.80,4.28,5.63],exp=[4.10,4.96,9.34,10.00,6.75];
-    var H=230,pl=34,pb=26,pt=14,max=12,gw=(W-pl)/5,bw=Math.min(34,gw/2-6),s='';
+    var yrs=['2020','2021','2022','2023','2024','2025'],imp=[5.52,6.18,7.80,4.28,5.63,6.33],exp=[4.10,4.96,9.34,10.00,6.75,null];
+    var H=230,pl=34,pb=26,pt=14,max=12,gw=(W-pl)/6,bw=Math.min(34,gw/2-6),s='';
     function y(v){return pt+(H-pt-pb)*(1-v/max)}
     [0,4,8,12].forEach(function(t){s+='<line x1="'+pl+'" x2="'+W+'" y1="'+y(t)+'" y2="'+y(t)+'" stroke="'+cv('--line')+'"/><text class="m" x="'+(pl-6)+'" y="'+(y(t)+4)+'" text-anchor="end">'+t+'</text>'});
     yrs.forEach(function(a,i){var cx=pl+gw*i+gw/2;
       s+='<rect x="'+(cx-bw-2)+'" y="'+y(imp[i])+'" width="'+bw+'" height="'+(y(0)-y(imp[i]))+'" fill="'+cv('--viz1')+'"/>';
-      s+='<rect x="'+(cx+2)+'" y="'+y(exp[i])+'" width="'+bw+'" height="'+(y(0)-y(exp[i]))+'" fill="'+cv('--viz3')+'"/>';
+      if(exp[i]!==null)s+='<rect x="'+(cx+2)+'" y="'+y(exp[i])+'" width="'+bw+'" height="'+(y(0)-y(exp[i]))+'" fill="'+cv('--viz3')+'"/>';
       s+='<text x="'+(cx-bw/2-2)+'" y="'+(y(imp[i])-4)+'" text-anchor="middle">'+imp[i].toFixed(1)+'</text>';
-      s+='<text x="'+(cx+bw/2+2)+'" y="'+(y(exp[i])-4)+'" text-anchor="middle">'+exp[i].toFixed(1)+'</text>';
+      if(exp[i]!==null)s+='<text x="'+(cx+bw/2+2)+'" y="'+(y(exp[i])-4)+'" text-anchor="middle">'+exp[i].toFixed(1)+'</text>';
       s+='<text class="m" x="'+cx+'" y="'+(H-8)+'" text-anchor="middle">'+a+'</text>'});
     s+='<rect x="'+pl+'" y="0" width="10" height="10" fill="'+cv('--viz1')+'"/><text x="'+(pl+14)+'" y="9">Imports, US$ M</text><rect x="'+(pl+130)+'" y="0" width="10" height="10" fill="'+cv('--viz3')+'"/><text x="'+(pl+144)+'" y="9">Exports, US$ M</text>';
     tw.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Egypt imports and exports, HS 330190, US$ million, 2020 to 2024">'+s+'</svg>';
-    var rows=[['2022',[74.9,12.2,5.2,7.7]],['2023',[46.8,47.4,0,5.8]],['2024',[59.6,29.9,0,10.5]]];
+    var rows=[['2022',[74.9,12.2,5.2,7.7]],['2023',[46.8,47.4,0,5.8]],['2024',[59.6,29.9,0,10.5]],['2025',[81.1,9.9,0,9.0]]];
     var cols=['--viz1','--viz2','--viz3','--viz4'],names=['India','China','Sri Lanka','Other'];
-    var H2=150,pl2=44,bh=28,t='';
+    var H2=194,pl2=44,bh=28,t='';
     rows.forEach(function(r,i){var yy=26+i*44,x=pl2,tot=W-pl2-10;
       t+='<text class="m" x="0" y="'+(yy+18)+'">'+r[0]+'</text>';
       r[1].forEach(function(v,k){var w=tot*v/100;if(v<=0)return;
