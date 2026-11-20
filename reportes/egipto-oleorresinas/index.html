@@ -1,0 +1,335 @@
+<title>Egipto Oleorresinas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap">
+<style>
+/* Layout: editorial single column, 760px reading width, banda medianoche en portada, tablas y gráficas sobre fondo sólido */
+:root{
+  --midnight:#001e3d; --blue:#004070; --mid:#3972a9; --grey:#d9d9d9;
+  --bg:#f6f8fa; --surface:#ffffff; --fg:#10233a; --muted:#51647a; --line:#d9dee4;
+  --up:#b3261e; --down:#1e7a46; --warn:#a15c00; --band:#001e3d; --band-fg:#ffffff;
+  --viz1:#004070; --viz2:#3972a9; --viz3:#8fb0d1; --viz4:#c3ccd6;
+  --font:'Montserrat',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#071624; --surface:#0d2238; --fg:#e8eef5; --muted:#9fb2c6; --line:#22405e;
+  --up:#ff8a80; --down:#6fd39a; --warn:#f0b35a; --band:#001e3d; --band-fg:#fff;
+  --viz1:#6aa6dc; --viz2:#3972a9; --viz3:#2a5683; --viz4:#4a6279; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#071624; --surface:#0d2238; --fg:#e8eef5; --muted:#9fb2c6; --line:#22405e;
+  --up:#ff8a80; --down:#6fd39a; --warn:#f0b35a; --band:#001e3d; --band-fg:#fff;
+  --viz1:#6aa6dc; --viz2:#3972a9; --viz3:#2a5683; --viz4:#4a6279; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-weight:400;font-size:14px;line-height:1.6;margin:0}
+.wrap{max-width:820px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+header.cover{background:var(--band);color:var(--band-fg);padding-block:40px 36px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;opacity:.8;margin:0 0 14px}
+h1{font-weight:300;font-size:clamp(28px,5vw,42px);line-height:1.1;letter-spacing:.02em;text-transform:uppercase;margin:0 0 14px;text-wrap:balance}
+h1 b{font-weight:700}
+.thesis{font-size:16px;font-weight:300;max-width:62ch;margin:0}
+.meta{font-size:12px;opacity:.75;margin-top:18px}
+h2{font-size:15px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin:0 0 12px}
+:root[data-theme="dark"] h2{color:var(--viz1)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) h2{color:var(--viz1)}}
+h3{font-size:13px;font-weight:700;margin:18px 0 6px}
+section{padding-block:30px;border-bottom:1px solid var(--line)}
+p{margin:0 0 10px;max-width:70ch}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:6px}
+.kpi{background:var(--surface);border:1px solid var(--line);padding:14px}
+.kpi .v{font-size:26px;font-weight:300;font-variant-numeric:tabular-nums;color:var(--fg)}
+.kpi .l{font-size:12px;color:var(--muted);line-height:1.4}
+.kpi .s{font-size:11px;color:var(--muted);margin-top:6px}
+.up{color:var(--up);font-weight:600}.down{color:var(--down);font-weight:600}
+figure{margin:14px 0;background:var(--surface);border:1px solid var(--line);padding:14px}
+figcaption.t{font-size:13px;font-weight:700;margin-bottom:8px}
+figcaption.src{font-size:11px;color:var(--muted);margin-top:8px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--font);fill:var(--fg);font-size:11px;font-variant-numeric:tabular-nums}
+svg .m{fill:var(--muted)}
+.tw{overflow-x:auto;margin:10px 0;background:var(--surface);border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;white-space:nowrap}
+td.n,th.n{text-align:right}
+tr:last-child td{border-bottom:0}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border:1px solid currentColor}
+.t-ok{color:var(--down)}.t-w{color:var(--warn)}.t-r{color:var(--up)}
+.sowhat{background:var(--band);color:var(--band-fg);padding:16px 18px;margin:16px 0}
+.sowhat h3{margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+.sowhat p{margin:0 0 6px}
+ul{margin:6px 0 10px;padding-left:18px;max-width:70ch}li{margin-bottom:4px}
+.note{font-size:12px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);padding:14px}
+.card h3{margin-top:0}
+footer{padding-block:26px 40px;font-size:11px;color:var(--muted)}
+footer ol{padding-left:16px;max-width:none}
+footer a{color:var(--mid);word-break:break-all}
+@media print{
+  @page{size:Letter;margin:7mm 13mm}
+  body{background:#fff;font-size:9pt;line-height:1.38;color:#10233a;--bg:#fff;--surface:#fff;--fg:#10233a;--muted:#51647a;--line:#cfd6de}
+  .wrap{max-width:none;padding:0}
+  header.cover{padding-block:22px 20px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wrap.in{padding-inline:13mm}
+  section{padding-block:10px;break-inside:auto}
+  figure,.card,.kpi,.sowhat,tr{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  h3{break-after:avoid}
+  .wrap.in section:last-of-type{border-bottom:0}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .kpi .l{font-size:7.5pt}
+  .sowhat{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table{font-size:8pt}
+  figcaption.src,.note,footer{font-size:7pt}
+  .kpi .v{font-size:19pt}
+  .tw{overflow:visible}
+  footer ol{columns:2;column-gap:14px}
+  footer li{break-inside:avoid}
+  footer a{word-break:break-all}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="cover"><div class="wrap in">
+  <p class="eyebrow">Market read · Naturals · Robertet</p>
+  <h1>Oleorresinas en <b>Egipto</b></h1>
+  <p class="thesis">Egipto importa sus extractos de especias de India y China y exporta sobre todo a Arabia Saudita, Libia y Francia. Es un mercado pequeño (US$6,3 M importados en 2025) y condicionado por el tipo de cambio. Como origen vale por las especias de semilla, no por las oleorresinas de pimienta, cúrcuma o paprika.</p>
+  <p class="meta">Corte de datos: 19 de noviembre de 2026 · Importaciones hasta 2025; exportaciones hasta 2024 · Elaborado con el proyecto de reportes</p>
+</div></header>
+
+<main class="wrap in">
+
+<section id="resumen">
+  <h2>El mercado en una página</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="v">US$6,3 M</div><div class="l">Importaciones HS 3301.90 (2025)</div><div class="s"><span class="up">+12%</span> vs 2024 · −19% vs 2022</div></div>
+    <div class="kpi"><div class="v">91%</div><div class="l">Proveniente de India y China (2025)</div><div class="s">India 81% · China 10%</div></div>
+    <div class="kpi"><div class="v">US$6,7 M</div><div class="l">Exportaciones HS 3301.90 (2024)</div><div class="s"><span class="down">−33%</span> vs 2023 (US$10,0 M)</div></div>
+    <div class="kpi"><div class="v">≈53,5</div><div class="l">EGP por USD, 15 nov 2026</div><div class="s">Bancos locales, no es cifra oficial del Banco Central</div></div>
+  </div>
+  <p style="margin-top:14px">Tres lecturas para el equipo comercial:</p>
+  <ul>
+    <li><b>Mercado de importación pequeño y concentrado.</b> Dos orígenes explican 91% del valor en 2025. Cambian de peso cada año: India tuvo 75% en 2022, 47% en 2023, 60% en 2024 y 81% en 2025. China pasó de 12% a 47%, luego a 30% y a 10%.</li>
+    <li><b>Los frenos son el dólar, el trámite y el flete.</b> La disponibilidad de divisas, la documentación aduanera previa (ACID) y el encarecimiento del flete desde India desde la crisis de Ormuz.</li>
+    <li><b>Como origen, Egipto sirve para semillas.</b> Comino, cilantro, hinojo, alcaravea, anís y fenogreco. Sus oleorresinas y aceites son un negocio de nicho con pocos actores verificables.</li>
+  </ul>
+</section>
+
+<section id="comercio">
+  <h2>Comercio exterior: qué entra y qué sale</h2>
+  <p>La partida 3301.90 agrupa oleorresinas de extracción, concentrados de aceites esenciales, subproductos terpénicos y aguas destiladas. No separa oleorresinas de especias. Úsese como indicador de tendencia y de orígenes, no como volumen exacto de oleorresina.</p>
+  <figure>
+    <figcaption class="t">Las importaciones suben por segundo año, pero siguen bajo el pico de 2022</figcaption>
+    <div id="c-trade"></div>
+    <figcaption class="src">Fuente: UN Comtrade (reportero Egipto, HS 330190, flujos M y X, valores en US$). Datos 2024 y 2025 pueden revisarse. Exportaciones 2025 sin consultar.</figcaption>
+  </figure>
+  <figure>
+    <figcaption class="t">India vuelve a dominar (81% en 2025) tras empatar con China en 2023</figcaption>
+    <div id="c-origen"></div>
+    <figcaption class="src">Fuente: UN Comtrade, importaciones de Egipto HS 330190 por socio. «Otros»: Indonesia, Reino Unido, Líbano, Canadá y más de 10 países.</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Destino de exportación</th><th class="n">2023 US$</th><th class="n">2024 US$</th><th class="n">Peso 2024</th></tr></thead>
+    <tbody>
+      <tr><td>Arabia Saudita</td><td class="n">1.615.302</td><td class="n">1.852.667</td><td class="n">27%</td></tr>
+      <tr><td>Libia</td><td class="n">605.885</td><td class="n">1.539.672</td><td class="n">23%</td></tr>
+      <tr><td>Francia</td><td class="n">1.787.150</td><td class="n">1.202.495</td><td class="n">18%</td></tr>
+      <tr><td>Yemen</td><td class="n">278.306</td><td class="n">467.540</td><td class="n">7%</td></tr>
+      <tr><td>Irak / EAU / Alemania</td><td class="n">n.d. / 112.652 / 644.683</td><td class="n">258.000 / 245.021 / 202.013</td><td class="n">11%</td></tr>
+      <tr><td>Reino Unido · EE.UU. · Suiza</td><td class="n">1.336.310 · 1.033.606 · 647.220</td><td class="n">fuera del top 10</td><td class="n">—</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Las exportaciones giran hacia Medio Oriente y Libia y se alejaron de Reino Unido, EE.UU. y Suiza. Es el mismo patrón de un exportador que vende aceites y concentrados locales a vecinos y a Francia, no oleorresinas de especias importadas.</p>
+  <h3>Dos advertencias sobre el dato</h3>
+  <ul>
+    <li><b>El kilo reportado parece estimado.</b> En cada año todos los socios muestran el mismo valor por kilo (≈US$23,5 en 2024 para India, China e Indonesia). Eso ocurre cuando el peso se calcula a partir del valor. Egipto reporta solo a 6 dígitos, sin líneas nacionales que separen oleorresinas. No se usa como precio.</li>
+    <li><b>Partida cercana:</b> los extractos vegetales HS 1302.19 sumaron US$6,4 M en 2024 (US$8,0 M en 2022). Los proveedores son España (24%), China (22%), Dinamarca (16%) y Turquía (10%): es un mercado de extractos botánicos distinto, con origen más europeo.</li>
+  </ul>
+</section>
+
+<section id="precios">
+  <h2>Niveles de precio</h2>
+  <p>No hay una serie pública verificable de precios CIF de oleorresina en Egipto. Se usan como referencia los precios pedidos por fabricantes indios, que es el origen principal. Son precios de lista en rupias por kilo, sin incoterm, y se negocian a la baja en volumen. No son cotizaciones FOB.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Oleorresina (referencia India)</th><th class="n">Rango pedido, INR/kg</th><th>Qué mueve el precio</th></tr></thead>
+    <tbody>
+      <tr><td>Paprika 40.000 CU</td><td class="n">750 – 1.050 (listas hasta 2.500)</td><td>Unidades de color, residuos de solvente</td></tr>
+      <tr><td>Capsicum 10% / 15%</td><td class="n">1.500 / 4.100</td><td>Pungencia (SHU)</td></tr>
+      <tr><td>Cúrcuma</td><td class="n">1.200 – 1.500 (un listado 4.200)</td><td>% curcumina vs. aceite volátil</td></tr>
+      <tr><td>Pimienta negra</td><td class="n">2.200 – 4.000</td><td>% piperina y aceite volátil</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Fuente: listados de IndiaMART y ExportersIndia consultados en noviembre de 2026. Las fechas de actualización de los listados no son confiables. No convertimos a dólares porque no tenemos el tipo de cambio INR de la fecha.</p>
+  <h3>Referencias en dólares (sin abrir la fuente)</h3>
+  <p>Paprika ASTA 40.000: US$25–40/kg FOB India (lista de exportador, octubre 2026). Capsicum: promedio cercano a US$35/kg en los 12 meses a abril 2026. Extracto de pimienta negra: US$77/kg como valor de exportación de India en febrero 2026, con volumen bajo. No encontramos precio 2026 de oleorresina de apio, comino o cilantro. Estas cifras vienen del resumen de un buscador y de Tridge; confirmar con cotización.</p>
+  <h3>Materia prima egipcia (semillas)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Producto</th><th>Dato</th><th>Lectura</th></tr></thead>
+    <tbody>
+      <tr><td>Comino molido, Egipto</td><td class="n">US$4,78 – 5,10/kg (primavera 2026)</td><td>Muestras pequeñas de transacciones</td></tr>
+      <tr><td>Comino, FOB Cairo</td><td>Lateral en septiembre 2026</td><td>Cosecha 2026 terminada sin daños; India (jeera) cerca de INR 19.000/quintal en julio</td></tr>
+      <tr><td>Hinojo, exportación</td><td class="n">US$1,08 – 2,25/kg (2024)</td><td>Volatilidad amplia</td></tr>
+      <tr><td>Alcaravea</td><td>Estable a firme</td><td>Egipto superó 80% de las importaciones turcas de anís/alcaravea/hinojo hacia fines de 2025</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Fuentes: Tridge (muestras), Commodity Board (comentario de mercado, sin datos primarios). Las dos fuentes se contradicen en la dirección de los precios; tratar como orientativo.</p>
+  <h3>Tipo de cambio y poder de compra</h3>
+  <p>El dólar cotizó entre 53,36 y 53,84 EGP en bancos egipcios entre el 12 y el 15 de noviembre de 2026. Una evaluación del mercado egipcio de 2024 citada por la búsqueda describe una desaceleración fuerte de importaciones por falta de divisas. No encontramos un dato oficial del Banco Central de Egipto para noviembre.</p>
+</section>
+
+<section id="fletes">
+  <h2>Fletes desde India</h2>
+  <p>Los clientes reportan fletes mucho más altos. El dato público lo confirma: la crisis de Ormuz, desde el 28 de febrero de 2026, encareció los fletes y los recargos de guerra y combustible. Desde octubre las navieras vuelven a Suez y las tarifas bajan, pero siguen sobre el nivel previo.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Indicador</th><th class="n">Valor</th><th>Fecha</th><th>Fuente</th></tr></thead>
+    <tbody>
+      <tr><td>Drewry World Container Index</td><td class="n">US$4.389/40 pies (−4,3% vs pico)</td><td>5 nov 2026</td><td>Drewry (Sourcing Journal)</td></tr>
+      <tr><td>Shanghai–Génova</td><td class="n">US$4.166/40 pies (8 oct: 3.696)</td><td>5 nov 2026</td><td>Drewry</td></tr>
+      <tr><td>Extremo Oriente–Mediterráneo</td><td class="n">≈US$4.105/40 pies (+23% vs 28 feb)</td><td>2 oct 2026</td><td>Xeneta</td></tr>
+      <tr><td>Recargo Maersk ECS, noroeste de India y Pakistán a Mediterráneo</td><td class="n">US$4.100 → 5.100/40 pies</td><td>hasta 14 ago → desde 15 ago</td><td>Maersk</td></tr>
+      <tr><td>Recargo Maersk ECS, sur y este de India a Mediterráneo</td><td class="n">US$4.400 → 5.400/40 pies</td><td>mismo cambio</td><td>Maersk</td></tr>
+      <tr><td>JNPT–Jebel Ali (ruta del Golfo)</td><td class="n">US$734 (prom. 2025) → 6.216</td><td>abril 2026</td><td>Drewry</td></tr>
+      <tr><td>Recargos de guerra a exportadores indios</td><td class="n">hasta ≈US$7.000/contenedor</td><td>sin fecha</td><td>Fuente secundaria</td></tr>
+      <tr><td>Manejo en terminal en Egipto (THC)</td><td class="n">US$215 Alejandría · US$225 Port Said, 40 pies</td><td>sept 2026</td><td>Maersk</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Los recargos de Maersk son por contenedor y se suman a la tarifa base. No encontramos una tarifa total India–Alejandría o Port Said publicada para 2026. Las cifras de Maersk de septiembre y octubre (cambios con vigencia del 1 y 7 de octubre) no se pudieron leer con claridad y no se incluyen.</p>
+  <h3>Qué significa para la oleorresina</h3>
+  <ul>
+    <li><b>En contenedor completo pesa poco.</b> Con un recargo de US$5.000 y 20 t de carga, el costo es cercano a US$0,25/kg (cálculo ilustrativo). Frente a US$25–40/kg de una paprika de 40.000 CU, es menos de 1% del valor.</li>
+    <li><b>En lotes pequeños pesa mucho más.</b> Para carga consolidada (LCL), muestras y pedidos de uno o dos tambores, el flete y los recargos por kilo son varias veces mayores. Es donde los clientes lo notan.</li>
+    <li><b>El riesgo es el plazo y el cupo.</b> Los desvíos y la congestión alargan los tiempos, y Egipto exige ACID antes del embarque. Planificar con anticipación y pedir precio con incoterm explícito (FOB o CIF) y vigencia de recargos.</li>
+    <li><b>Dirección:</b> un informe del 18 de noviembre dice que las navieras quizá solo consigan parte de los aumentos anunciados para noviembre. Una escalación en Ormuz sería el principal riesgo al alza.</li>
+  </ul>
+  <p class="note">Fuentes: Drewry y Xeneta vía Sourcing Journal, Cyprus Shipping News (18 nov 2026) y SAFETY4SEA; avisos de Maersk de 2026 (ECS India–Mediterráneo y THC Egipto); Hellenic Shipping News. Solicitar cotización firme a Maersk, MSC o Hapag-Lloyd desde Nhava Sheva o Mundra a Alejandría o Port Said.</p>
+</section>
+
+<section id="demanda">
+  <h2>Importadores y demanda</h2>
+  <div class="sowhat">
+    <h3>Límite del análisis</h3>
+    <p>No tuvimos acceso a registros aduaneros por empresa (Eximpedia, Volza, Trademo) para Egipto. Por eso no hay una lista verificada de importadores de oleorresinas. Lo siguiente es lo que sí se confirmó y cómo se estructura la demanda.</p>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Segmento</th><th>Quién</th><th>Estado de la evidencia</th></tr></thead>
+    <tbody>
+      <tr><td>Casas de sabores y fragancias</td><td>Symrise (Creative Center en Egipto, inaugurado el 26 nov 2019); Givaudan (responsable regional de sabores para África y Medio Oriente); Kerry (opera con un socio productor exclusivo en Egipto); IFF y dsm-firmenich en listas de mercado</td><td><span class="tag t-w">Presencia confirmada, volúmenes no</span></td></tr>
+      <tr><td>Pistas sin verificar</td><td>Volza menciona a Givaudan Egypt SAE (oleorresina de paprika desde China, 2019–2022) y a Symrise SAE. Casas locales que podrían comprar: Namaa Flavors &amp; Fragrances (10th of Ramadan; inversión de EGP 250 M anunciada en octubre de 2025) y AFF (Alejandría, desde 1969)</td><td><span class="tag t-r">Resumen de buscador, sin registro abierto</span></td></tr>
+      <tr><td>Procesadores de alimentos y bebidas</td><td>Grupos locales como Juhayna</td><td><span class="tag t-r">Compra de oleorresina no verificada</span></td></tr>
+      <tr><td>Importadores y distribuidores</td><td>Según la guía de comercio de EE.UU., procesadores, fabricantes y agentes. Recomiendan un importador local para cumplir con regulación y distribución</td><td><span class="tag t-w">Perfil general, sin nombres</span></td></tr>
+    </tbody>
+  </table></div>
+  <p>El tamaño de la demanda de especias: según OEC, Egipto importó US$46,4 M de especias en 2024 (puesto 22 mundial) y exportó US$32,6 M (puesto 27). Las oleorresinas son una fracción pequeña de ese flujo.</p>
+  </section>
+
+<section id="proveedores">
+  <h2>Proveedores</h2>
+  <h3>Con base en Egipto</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Empresa</th><th>Qué declara</th><th>Certificaciones declaradas</th><th>Evidencia</th></tr></thead>
+    <tbody>
+      <tr><td>Spice Kingdom</td><td>Fundada en 1919, 201–500 empleados. Suministra 7.000 t/año de hierbas, semillas, especias, aceites esenciales, oleorresinas y extractos. Incoterm EXW</td><td>BRC, ISO 22000, USDA y EU Organic, SMETA/SEDEX</td><td><span class="tag t-ok">Perfil Nutrada, abril 2026</span></td></tr>
+      <tr><td>Alaghsan Egypt for Herbs &amp; Spices</td><td>Cairo, desde 2005. Hierbas, semillas y aceites/oleorresinas. Vende a Europa, EE.UU., Brasil, Paraguay y Sudáfrica</td><td>BRC, ECOA, FDA, ISO, SGS</td><td><span class="tag t-w">Directorio, autodeclarado</span></td></tr>
+      <tr><td>Al Rais Egypt</td><td>Hierbas y semillas a granel (manzanilla, hibisco, comino, albahaca). No muestra oleorresinas</td><td>ISO 22000, HACCP, orgánico</td><td><span class="tag t-w">Sitio propio</span></td></tr>
+      <tr><td>Hyder for Spices</td><td>Desde 1991, especias, hierbas, frutos secos</td><td>n.d.</td><td><span class="tag t-w">Sitio propio</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Los directorios B2B (madeinegypt, Tridge) listan decenas de firmas con «oleorresina de paprika, jengibre, comino» sin datos de capacidad. Confirmar especificaciones, capacidad y certificados por escrito antes de calificar a un proveedor. No encontramos productor egipcio de oleorresina de apio.</p>
+  <h3>Orígenes que abastecen a Egipto</h3>
+  <p>India y China concentran 91% del valor (2025). Los nombres de proveedores que siguen vienen de directorios globales, y no están verificados contra envíos hacia Egipto:</p>
+  <ul>
+    <li><b>India:</b> Plant Lipids, Synthite, Akay (Oterra), Mane Kancor, Vidya Herbs.</li>
+    <li><b>China:</b> Chenguang Biotech (paprika y capsicum), Henan Sunlight.</li>
+    <li><b>Otros socios 2022–2024:</b> Sri Lanka (5% en 2022), Indonesia (4% en 2024), Reino Unido (3% en 2024), Líbano.</li>
+  </ul>
+  <p class="note">Registros históricos de Zauba (2013–2016) muestran que India enviaba a Egipto oleorresinas de semillas (cilantro, comino, apio, fenogreco, hinojo), lo que sugiere que Egipto las importaba en vez de producirlas. No encontramos productor egipcio de oleorresina de paprika, capsicum, pimienta o cúrcuma con evidencia. En aceites de semilla aparecen A. Fakhry, Fridal y Al Sheikh, sin datos de capacidad. Algunos listados de Plant Lipids y Akay aparecen marcados como «suministrado desde Egipto» en plataformas B2B. Es probable que sean intermediarios; no los tomamos como producción egipcia.</p>
+</section>
+
+<section id="logistica">
+  <h2>Regulación y logística</h2>
+  <ul>
+    <li><b>ACID (Advance Cargo Information):</b> obligatorio para carga marítima desde octubre de 2021 y para carga aérea desde el 1 de enero de 2026. El importador lo solicita en la plataforma Nafeza con la factura proforma. Sin ACID la carga no puede ingresar. Debe figurar en factura comercial, certificado de origen y documentos de transporte. Validez de seis meses.</li>
+    <li><b>Requisitos sanitarios (según resumen del informe FAIRS de USDA 2025, no abierto):</b> la lista positiva de colorantes y aditivos es la Decisión 4/2020 de la NFSA. El certificado de análisis debe indicar nombre científico y concentración. Si el embarque declara halal, el certificado lo emite IS EG Halal. IVA a la importación de 14%.</li>
+    <li><b>Divisas:</b> el acceso a dólares condicionó las importaciones de ingredientes. Ajustar condiciones de pago y plazos con cada cliente.</li>
+    <li><b>No verificado:</b> arancel y registro sanitario aplicables a HS 3301.90 en Egipto. Pendiente de consulta a la Autoridad Aduanera egipcia.</li>
+  </ul>
+</section>
+
+<section id="lectura">
+  <h2>Lectura para Robertet</h2>
+  <div class="cols">
+    <div class="card"><h3>Oportunidad</h3><ul>
+      <li>Atender a casas de sabores con presencia local (Symrise, Givaudan, Kerry) con oleorresinas de especificación estable, no con precio.</li>
+      <li>Sourcing de semillas egipcias (comino, cilantro, hinojo, alcaravea, fenogreco) para aceites esenciales y extractos propios.</li>
+    </ul></div>
+    <div class="card"><h3>Riesgo</h3><ul>
+      <li>Precio en dólares frente a un mercado que cambia de origen cada año entre India y China.</li>
+      <li>Pagos y divisas. El importador local carga el riesgo de acceso a dólares.</li>
+    </ul></div>
+    <div class="card"><h3>Pendiente</h3><ul>
+      <li>Datos espejo de India (reportero 699, socio Egipto) por línea nacional: separaría la oleorresina de 60–81% de lo que importa Egipto.</li>
+      <li>Datos aduaneros por empresa.</li>
+      <li>Arancel HS 3301.90.</li>
+      <li>Cotización FOB reciente de India para paprika, pimienta y cúrcuma.</li>
+    </ul></div>
+  </div>
+  <div class="sowhat">
+    <h3>So what</h3>
+    <p>Egipto es una cuenta de nicho, no un mercado de volumen. En el tender del proyecto (pimienta negra, cúrcuma, nuez moscada, clavo, apio) ninguna de las referencias principales tiene origen egipcio. El valor para Robertet está en dos frentes: servir a las casas con presencia local y abastecerse de semillas y aceites desde Egipto.</p>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap in">
+  <h2 style="font-size:12px">Método y fuentes</h2>
+  <p>Elaborado con el proyecto de reportes. Datos de comercio de UN Comtrade (preview público, consultado el 19 de noviembre de 2026). Perfiles de empresas autodeclarados. Lo que no se pudo verificar se marca como tal en el texto. No se inventaron cifras. Futuring Naturals®</p>
+  <ol>
+    <li>UN Comtrade, reportero Egipto (818), HS 330190 (2020–2025), 130219 y 090421 (2022–2024): comtradeplus.un.org</li>
+    <li>OEC, Spices in Egypt Trade: <a href="https://oec.world/en/profile/bilateral-product/spices/reporter/egy">oec.world/en/profile/bilateral-product/spices/reporter/egy</a></li>
+    <li>Spice Kingdom, perfil Nutrada: <a href="https://nutrada.com/suppliers/spice-kingdom">nutrada.com/suppliers/spice-kingdom</a></li>
+    <li>Alaghsan: <a href="https://spiceexportersdirectory.com/company/alaghsan-egypt-for-herbs-spices-cairo-egypt/">spiceexportersdirectory.com</a> · Al Rais: <a href="https://alraisegypt.com/egypt-spices-export/">alraisegypt.com</a></li>
+    <li>Tipo de cambio USD/EGP: <a href="https://arabfinance.com/en/News/newdetails/usd-egp-exchange-rate-on-november-15-2026">Arab Finance, 15 nov 2026</a></li>
+    <li>ACID: <a href="https://aegypten.ahk.de/en/news2/egypt-to-enforce-mandatory-aci-for-air-freight-starting-january-1-2026">AHK Egipto</a> · <a href="https://www.marken.com/new-rules-for-shipping-to-egypt-what-you-need-to-know">Marken</a></li>
+    <li>Pistas y requisitos: investigacion_dificil.md (Zauba, Volza, USDA FAIRS 2025); las marcadas B no se abrieron.</li>
+    <li>Precios India: IndiaMART, ExportersIndia, TradeIndia (listados). Semillas: Commodity Board, Tridge.</li>
+  </ol>
+  </div></footer>
+
+<script>
+(function(){
+  var cs=getComputedStyle(document.documentElement);
+  function draw(){
+    var tw=document.getElementById('c-trade'),or=document.getElementById('c-origen');
+    var W=Math.max(300,Math.min(760,tw.clientWidth||760));
+    // chart 1: grouped bars
+    var yrs=['2020','2021','2022','2023','2024','2025'],imp=[5.52,6.18,7.80,4.28,5.63,6.33],exp=[4.10,4.96,9.34,10.00,6.75,null];
+    var H=230,pl=34,pb=26,pt=14,max=12,gw=(W-pl)/6,bw=Math.min(34,gw/2-6),s='';
+    function y(v){return pt+(H-pt-pb)*(1-v/max)}
+    [0,4,8,12].forEach(function(t){s+='<line x1="'+pl+'" x2="'+W+'" y1="'+y(t)+'" y2="'+y(t)+'" stroke="'+cv('--line')+'"/><text class="m" x="'+(pl-6)+'" y="'+(y(t)+4)+'" text-anchor="end">'+t+'</text>'});
+    yrs.forEach(function(a,i){var cx=pl+gw*i+gw/2;
+      s+='<rect x="'+(cx-bw-2)+'" y="'+y(imp[i])+'" width="'+bw+'" height="'+(y(0)-y(imp[i]))+'" fill="'+cv('--viz1')+'"/>';
+      if(exp[i]!==null)s+='<rect x="'+(cx+2)+'" y="'+y(exp[i])+'" width="'+bw+'" height="'+(y(0)-y(exp[i]))+'" fill="'+cv('--viz3')+'"/>';
+      s+='<text x="'+(cx-bw/2-2)+'" y="'+(y(imp[i])-4)+'" text-anchor="middle">'+imp[i].toFixed(1)+'</text>';
+      if(exp[i]!==null)s+='<text x="'+(cx+bw/2+2)+'" y="'+(y(exp[i])-4)+'" text-anchor="middle">'+exp[i].toFixed(1)+'</text>';
+      s+='<text class="m" x="'+cx+'" y="'+(H-8)+'" text-anchor="middle">'+a+'</text>'});
+    s+='<rect x="'+pl+'" y="0" width="10" height="10" fill="'+cv('--viz1')+'"/><text x="'+(pl+14)+'" y="9">Importaciones, US$ M</text><rect x="'+(pl+160)+'" y="0" width="10" height="10" fill="'+cv('--viz3')+'"/><text x="'+(pl+174)+'" y="9">Exportaciones, US$ M</text>';
+    tw.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Importaciones y exportaciones de Egipto HS 330190, millones de dólares, 2020 a 2024">'+s+'</svg>';
+    // chart 2: 100% stacked horizontal bars by origin
+    var rows=[['2022',[74.9,12.2,5.2,7.7]],['2023',[46.8,47.4,0,5.8]],['2024',[59.6,29.9,0,10.5]],['2025',[81.1,9.9,0,9.0]]];
+    var cols=['--viz1','--viz2','--viz3','--viz4'],names=['India','China','Sri Lanka','Otros'];
+    var H2=194,pl2=44,bh=28,t='';
+    rows.forEach(function(r,i){var yy=26+i*44,x=pl2,tot=W-pl2-10;
+      t+='<text class="m" x="0" y="'+(yy+18)+'">'+r[0]+'</text>';
+      r[1].forEach(function(v,k){var w=tot*v/100;if(v<=0)return;
+        t+='<rect x="'+x+'" y="'+yy+'" width="'+w+'" height="'+bh+'" fill="'+cv(cols[k])+'"/>';
+        if(w>34)t+='<text x="'+(x+w/2)+'" y="'+(yy+18)+'" text-anchor="middle" fill="'+(k<2?'#fff':cv('--fg'))+'" style="fill:'+(k<2?'#fff':cv('--fg'))+'">'+v.toFixed(0)+'%</text>';
+        x+=w})});
+    names.forEach(function(n,k){var lx=pl2+k*Math.min(120,(W-pl2)/4);t+='<rect x="'+lx+'" y="0" width="10" height="10" fill="'+cv(cols[k])+'"/><text x="'+(lx+14)+'" y="9">'+n+'</text>'});
+    or.innerHTML='<svg viewBox="0 0 '+W+' '+H2+'" role="img" aria-label="Participación por origen en importaciones de Egipto HS 330190, 2022 a 2024: India 75, 47 y 60 por ciento; China 12, 47 y 30 por ciento">'+t+'</svg>';
+  }
+  function cv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#004070'}
+  draw();var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(draw,120)});
+  if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener&&matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+  window.__draw=draw;
+})();
+</script>
